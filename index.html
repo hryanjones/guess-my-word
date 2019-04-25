@@ -25,7 +25,7 @@ label {
 }
 label,
 .guess {
-    padding: 8px 5px 8px 0px;
+    padding: 0px 5px 5px 0px;
 }
 
 #new-guess {
@@ -56,6 +56,19 @@ label,
 #after-label {
     align-self: flex-end;
 }
+
+#guesser h2 {
+    display: none;
+}
+#guesser.show-win h2 {
+    display: block;
+}
+.show-win input[type="submit"] {
+    display: none;
+}
+.show-win #new-guess {
+    font-size: 120%
+}
 </style>
 </head>
 <body>
@@ -69,10 +82,13 @@ label,
         <div id="after-guesses">
         </div>
     </div>
-    <form name="guesser" onsubmit="return makeGuess()">
+    <form id="guesser" name="guesser" onsubmit="return makeGuess()">
         <label><!-- cheap spacing--></label>
-        <input id="new-guess" type="text" onchange="resetValidation()" title="guess any word"/>
-        <input type="submit" value="guess"/>
+        <div>
+            <h2>You got it! 🎉🎉🎉</h2>
+            <input id="new-guess" type="text" onchange="resetValidation()" title="guess any word"/>
+            <input type="submit" value="guess"/>
+        </div>
     </form>
     <div id="before-guesses-container">
         <label id="before-label" class="initially-hidden" title="My word is before these words">
@@ -105,6 +121,7 @@ label,
         const words = Object.keys(validWordLookup);
         const randomWordIndex = Math.floor(Math.random() * words.length);
         word = words[randomWordIndex];
+        word = 'flow';
     }
 
     function getInput() {
@@ -125,7 +142,8 @@ label,
         }
         const comparison = getComparisonToTargetWord(guess);
         if (comparison === WIN) {
-            alert('you got it! 🎉');
+            document.getElementById('guesser').classList.add('show-win');
+            getInput().disabled = true;
             return false;
         }
         input.value = ''; // clear input to get ready for next guess
