@@ -74,12 +74,12 @@ label,
     align-self: flex-end;
 }
 
-#guesser h2,
-#guesser h3 {
+#guesser .aww,
+#guesser .yeah {
     display: none;
 }
-#guesser.show-win h2,
-#guesser.gave-up h3 {
+#guesser.show-win .yeah,
+#guesser.gave-up .aww {
     display: block;
 }
 .show-win input[type="submit"],
@@ -112,11 +112,12 @@ label,
     <form id="guesser" name="guesser" onsubmit="return makeGuess()" autocomplete="off">
         <label><!-- cheap spacing--></label>
         <div>
-            <h2>You got it! 🎉🎉🎉</h2>
-            <h3>My word is:</h3>
+            <h2 class="yeah">You got it! 🎉🎉🎉</h2>
+            <h3 class="aww">My word is:</h3>
             <input id="new-guess" type="text" onchange="resetValidation()" placeholder="type a  word then --->"/>
             <input type="submit" value="guess"/>
-            <h3>better luck next time!</h3>
+            <h4 class="yeah">come back tomorrow for a new word</h4>
+            <h4 class="aww">better luck tomorrow!</h4>
             <a href="#" onclick="giveUp()">give up :(</a>
         </div>
     </form>
