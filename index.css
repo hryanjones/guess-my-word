@@ -1,0 +1,97 @@
+/* Shared Styles */
+
+body {
+    font-family: sans-serif;
+}
+h1 .home {
+    color: #000;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.bigger-target,
+li, li a {
+    padding: 8px;
+}
+
+/* Game Styles */
+
+#container {
+    display: flex;
+    flex-direction: column;
+}
+#after-guesses-container,
+#before-guesses-container, 
+form {
+    display: flex;
+}
+
+label {
+    width: 8ch;
+    font-weight: bold;
+    text-align: right;
+}
+label,
+.guess {
+    padding: 0px 5px 5px 0px;
+}
+
+#guesser {
+    margin-bottom: 5px;
+}
+
+#new-guess {
+    width: 130px;
+    text-transform: lowercase;
+}
+form input[type="submit"] {
+    width: 60px;
+}
+#guesser a {
+    margin-left: 15px;
+    font-size: 80%;
+}
+
+.guess {
+    justify-content: space-between;
+}
+label,
+.guess-number {
+    color: #A6A6A6;
+}
+.guess-number {
+    display: none; /* bring back if want */
+}
+.initially-hidden {
+    visibility: hidden;
+}
+
+.current-guess {
+    font-style: italic;
+}
+
+#after-label {
+    align-self: flex-end;
+}
+
+#guesser .aww,
+#guesser .yeah {
+    display: none;
+}
+#guesser.show-win .yeah,
+#guesser.gave-up .aww {
+    display: block;
+}
+.show-win input[type="submit"],
+.show-win a,
+.gave-up input[type="submit"],
+.gave-up a {
+    display: none;
+}
+.show-win #new-guess,
+.gave-up #new-guess {
+    font-size: 120%
+}

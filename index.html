@@ -3,102 +3,14 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body {
-    font-family: sans-serif;
-}
-h1 .home {
-    color: #000;
-}
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-
-#container {
-    display: flex;
-    flex-direction: column;
-}
-#after-guesses-container,
-#before-guesses-container, 
-form {
-    display: flex;
-}
-
-label {
-    width: 8ch;
-    font-weight: bold;
-    text-align: right;
-}
-label,
-.guess {
-    padding: 0px 5px 5px 0px;
-}
-
-#guesser {
-    margin-bottom: 5px;
-}
-
-#new-guess {
-    width: 130px;
-    text-transform: lowercase;
-}
-form input[type="submit"] {
-    width: 60px;
-}
-#guesser a {
-    margin-left: 15px;
-    font-size: 80%;
-}
-
-.guess {
-    justify-content: space-between;
-}
-label,
-.guess-number {
-    color: #A6A6A6;
-}
-.guess-number {
-    display: none; /* bring back if want */
-}
-.initially-hidden {
-    visibility: hidden;
-}
-
-.current-guess {
-    font-style: italic;
-}
-
-#after-label {
-    align-self: flex-end;
-}
-
-#guesser .aww,
-#guesser .yeah {
-    display: none;
-}
-#guesser.show-win .yeah,
-#guesser.gave-up .aww {
-    display: block;
-}
-.show-win input[type="submit"],
-.show-win a,
-.gave-up input[type="submit"],
-.gave-up a {
-    display: none;
-}
-.show-win #new-guess,
-.gave-up #new-guess {
-    font-size: 120%
-}
+<link rel="stylesheet" href="./index.css"/>
 
 </style>
 </head>
 <body>
 <header>
     <h1><a href="./index.html" class="home">Guess my word</a></h1>
-    <a href="./README.html">about</a>
+    <a class="bigger-target" href="./README.html">about</a>
 </header>
 
 <div id="container">
@@ -113,6 +25,7 @@ label,
         <label><!-- cheap spacing--></label>
         <div>
             <h2 class="yeah">You got it! 🎉🎉🎉</h2>
+            <p class="yeah" id="stats"></p>
             <h3 class="aww">My word is:</h3>
             <input id="new-guess" type="text" onchange="resetValidation()" placeholder="type a  word then --->"/>
             <input type="submit" value="guess"/>
@@ -137,6 +50,7 @@ label,
     const BEFORE = 'before';
     const AFTER = 'after';
     let numberOfGuesses = 0;
+    let startTime;
     let word;
 
     const now = new Date();
@@ -178,16 +92,25 @@ label,
         if (invalidReason) {
             return false;
         }
+
+        updateStats();
+
         const comparison = getComparisonToTargetWord(guess);
         if (comparison === WIN) {
-            getForm().classList.add('show-win');
-            getInput().disabled = true;
+            handleWin();
             return false;
         }
         input.value = ''; // clear input to get ready for next guess
 
         recordGuess(guess, comparison);
         return false;
+
+        function updateStats() {
+            numberOfGuesses += 1;
+            if (!startTime) {
+                startTime = new Date();
+            }
+        }
     }
 
     function getGuess() {
@@ -216,9 +139,31 @@ label,
         return guess > word ? BEFORE : AFTER;
     }
 
-    function recordGuess(guess, comparison) {
-        numberOfGuesses += 1;
+    function handleWin() {
+        const stats = document.getElementById('stats');
+        const winTime = new Date();
+        stats.innerText = `in ${numberOfGuesses} guesses in ${getFormattedTime(startTime, winTime)}`;
+        getInput().disabled = true;
+        getForm().classList.add('show-win');
+    }
 
+    function getFormattedTime(start, end) {
+        let seconds = Math.round((end - start) / 1000);
+        let hours = Math.floor(seconds / 3600);
+        seconds = seconds % 3600;
+        let minutes = Math.floor(seconds / 60);
+        seconds = seconds % 60;
+
+        const formattedTime = [];
+        hours && formattedTime.push(hours + 'h');
+        minutes && formattedTime.push(minutes + 'm');
+        seconds && formattedTime.push(seconds + 's');
+
+        return formattedTime.join(' ');
+    }
+
+
+    function recordGuess(guess, comparison) {
         removeClass('current-guess');
 
         insertGuess(generateGuessElement(), comparison);
