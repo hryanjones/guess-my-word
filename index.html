@@ -142,7 +142,7 @@
     function handleWin() {
         const stats = document.getElementById('stats');
         const winTime = new Date();
-        stats.innerText = `in ${numberOfGuesses} guesses in ${getFormattedTime(startTime, winTime)}`;
+        stats.innerText = `(${numberOfGuesses} guesses in ${getFormattedTime(startTime, winTime)})`;
         getInput().disabled = true;
         getForm().classList.add('show-win');
     }
