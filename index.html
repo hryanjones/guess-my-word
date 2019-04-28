@@ -22,7 +22,7 @@
 <div id="container">
     <div id="after-guesses-container">
         <label id="after-label" class="initially-hidden" title="My word is after these words">
-            after:
+            is after:
         </label>
         <div id="after-guesses">
         </div>
@@ -33,7 +33,7 @@
             <h2 class="yeah">You got it! 🎉🎉🎉</h2>
             <p class="yeah" id="stats"></p>
             <h3 class="aww">My word is:</h3>
-            <input id="new-guess" type="text" onchange="resetValidation()" placeholder="type a word then ⟶"/>
+            <input id="new-guess" type="text" onchange="resetValidation()" placeholder="type a word then ⟶" autocomplete="off"/>
             <input type="submit" value="guess"/>
             <h4 class="yeah">
                 come back tomorrow for a new word
@@ -52,7 +52,7 @@
     </form>
     <div id="before-guesses-container">
         <label id="before-label" class="initially-hidden" title="My word is before these words">
-            before:
+            is before:
         </label>
         <div id="before-guesses">
         </div>
@@ -317,6 +317,9 @@
     };
 
 </script>
+
+<!-- Uncomment to run tests in browser -->
+<!-- <script src="./tests.js"></script> -->
 
 <script src="/assets/js/googleAnalytics.js"></script>
 </body>
