@@ -1,6 +1,7 @@
 
 const start = new Date('2000-01-01T00:00:00');
 
+getFormattedTime(start, start) === '0s' || oops();
 getFormattedTime(start, new Date('2000-01-01T00:00:03')) === '3s' || oops();
 getFormattedTime(start, new Date('2000-01-01T00:00:10')) === '10s' || oops();
 getFormattedTime(start, new Date('2000-01-01T00:27:01')) === '27m 1s' || oops();
