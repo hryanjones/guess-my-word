@@ -117,10 +117,19 @@ function getInvalidReason(guess) {
     if (!guess) {
         return "Guess can't be empty.";
     }
-    if (!(guess in validWordLookup)) {
-        return "Can't guess an unknown word.";
+    if (!isAValidWord(guess)) {
+        return "Guess must be an English word. (Scrabble-acceptable)";
     }
     return '';
+}
+
+function isAValidWord(guess) {
+    let level = validWordTrie;
+    for (const letter of guess) {
+        level = level[letter];
+        if (!level) return false;
+    }
+    return '' in level;
 }
 
 function getComparisonToTargetWord(guess) {
