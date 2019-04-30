@@ -48,9 +48,10 @@ function setup() {
     document.getElementById('after-guesses').innerHTML = '';
     document.getElementById('before-guesses').innerHTML = '';
 
-    // make labels hidden again
+    // make labels and give up hidden again
     document.getElementById('before-label').classList.add('initially-hidden');
     document.getElementById('after-label').classList.add('initially-hidden');
+    document.getElementById('give-up').classList.add('initially-hidden');
 }
 
 function getInput() {
@@ -85,6 +86,7 @@ function makeGuess(event) {
     }
 
     updateStats();
+    document.getElementById('give-up').classList.remove('initially-hidden');
 
     const comparison = getComparisonToTargetWord(guess);
     if (comparison === WIN) {
