@@ -11,9 +11,8 @@ const AFTER = 'after';
 let numberOfGuesses;
 let startTime;
 let word;
+let timezonelessDate; // will be used for leaderboard
 let difficulty = 'normal';
-
-const now = new Date();
 
 setup();
 
@@ -26,11 +25,6 @@ function setup() {
     input.disabled = false;
     input.value = '';
     input.focus();
-
-    // pick word randomly
-    const dayOfYear = getDOY(now);
-    const index = dayOfYear - 114;
-    word = possibleWords[difficulty][index];
 
     // reset stats
     numberOfGuesses = 0;
@@ -52,6 +46,19 @@ function setup() {
     document.getElementById('before-label').classList.add('initially-hidden');
     document.getElementById('after-label').classList.add('initially-hidden');
     document.getElementById('give-up').classList.add('initially-hidden');
+}
+
+function setWordAndDate() {
+    const now = new Date();
+
+    // Note: We don't want to set the word until the user starts playing as then 
+    // it'd be possible for their start date and the expected word on that date 
+    // not to match (and the eventual backend will verify this)
+    const dayOfYear = getDOY(now);
+    const index = dayOfYear - 114;
+    word = possibleWords[difficulty][index];
+
+    timezonelessDate = getTimezonelessLocalDate(now);
 }
 
 function getInput() {
@@ -87,6 +94,10 @@ function makeGuess(event) {
 
     updateStats();
     document.getElementById('give-up').classList.remove('initially-hidden');
+
+    if (!word) {
+        setWordAndDate();
+    }
 
     const comparison = getComparisonToTargetWord(guess);
     if (comparison === WIN) {
@@ -249,6 +260,25 @@ function changeDifficulty(newDifficulty) {
 }
 
 // Utilities
+
+function getTimezonelessLocalDate(date) {
+    return `${date.getFullYear()}-${getMonth(date)}-${getMonth(date)}`
+}
+
+function getMonth(date) {
+    return leftPad(date.getDate().toString(), 2);
+}
+
+function getMonthDay(date) {
+    return leftPad(date.getMonth().toString(), 2);
+}
+
+function leftPad(string, desiredLength, character = '0') {
+    if (string.length === desiredLength) {
+        return string;
+    }
+    return leftPad(character + string, desiredLength);
+}
 
 // https://stackoverflow.com/questions/8619879/javascript-calculate-the-day-of-the-year-1-366
 function isLeapYear(date) {
