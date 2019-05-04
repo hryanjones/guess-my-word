@@ -20,6 +20,8 @@ setup();
 getInput().addEventListener('input', event => event.target.setCustomValidity(''));
 
 function setup() {
+    word = undefined;
+
     // focus input
     const input = getInput();
     input.disabled = false;
