@@ -1,0 +1,12 @@
+{
+    "extends": "airbnb-base",
+    "env": {"browser": true},
+    "rules": {
+        "indent": ["error", 4],
+        "no-use-before-define": ["error", {"functions": false}],
+        "no-trailing-spaces": ["error", {"ignoreComments": true}],
+        "no-alert": ["off"],
+        "no-restricted-globals": ["off"],
+        "no-restricted-syntax": ["off"], // TODO figure out why it's complaining so much about this
+    }
+}
