@@ -62,10 +62,20 @@ function setWordAndDate() {
     // it'd be possible for their start date and the expected word on that date 
     // not to match (and the eventual backend will verify this)
     const dayOfYear = getDOY(now);
+
+    // FIXME need to fix this so it works into next year.
     const index = dayOfYear - 114;
+    ensureDifficultyMatchesDropdown();
     word = possibleWords[difficulty][index];
 
     timezonelessDate = getTimezonelessLocalDate(now);
+}
+
+function ensureDifficultyMatchesDropdown() {
+    const dropdown = getDifficultyChanger();
+    if (difficulty !== dropdown.value) {
+        difficulty = dropdown.value;
+    }
 }
 
 function getInput() {

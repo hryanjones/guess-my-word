@@ -1,5 +1,6 @@
 testGetFormattedTime();
 testNoDuplicatesInWordList();
+testThatDifficultyMatchesDropdownWhenStartGuessing();
 
 function testGetFormattedTime() {
     const start = new Date('2000-01-01T00:00:00');
@@ -25,7 +26,16 @@ function testNoDuplicatesInWordList() {
     }
 }
 
+function testThatDifficultyMatchesDropdownWhenStartGuessing() {
+    getDifficultyChanger().value = 'hard';
+    getInput().value = 'guess';
+    document.getElementById('submit-guess').click();
+    if (difficulty !== 'hard') {
+        oops('expected difficulty to match dropdown');
+    }
+}
+
 
 function oops(didNotExpect = '') {
-    throw new Error('oops', didNotExpect);
+    throw new Error(`oops: ${didNotExpect}`);
 }
