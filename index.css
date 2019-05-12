@@ -12,6 +12,9 @@ header {
 h1 .home {
     color: #000;
 }
+small {
+    font-size: 50%;
+}
 header {
     display: flex;
     justify-content: space-between;
