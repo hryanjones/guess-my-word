@@ -8,5 +8,6 @@
         "no-alert": ["off"],
         "no-restricted-globals": ["off"],
         "no-restricted-syntax": ["off"], // TODO figure out why it's complaining so much about this
+        "guard-for-in": ["off"],
     }
 }

@@ -27,8 +27,11 @@ li, li a {
     padding: 8px;
 }
 
-a,
-a:visited {
+a.home,
+a.home:visited,
+a#give-up,
+a#give-up:visited
+{
     text-decoration: none;
 }
 
@@ -49,17 +52,18 @@ h1 {
     margin-top: 24px; /* add some space between guesses and instructions */
 }
 #after-guesses-container,
-#before-guesses-container, 
-form {
+#before-guesses-container,
+#guesser 
+{
     display: flex;
 }
 
-label {
+.fixed-width-label {
     width: 78px;
     font-weight: bold;
     text-align: right;
 }
-label,
+.fixed-width-label,
 .guess {
     margin: 0px 5px 5px 0px;
 }
@@ -75,18 +79,22 @@ label,
 form input[type="submit"] {
     width: 60px;
 }
+
+form {
+    position: relative; /* so can absolutely position the give up button */
+}
 #give-up {
-    margin-left: 25px;
     font-size: 80%;
     white-space: nowrap;
-    margin-top: 10px; /* if it wraps to next line on phone don't put too close to input*/
-    display: inline-block;
+    position: absolute;
+    top: 200%;
+    right: 0px;
 }
 
 .guess {
     justify-content: space-between;
 }
-label,
+.fixed-width-label,
 .guess-number {
     color: #999;
 }
@@ -119,23 +127,29 @@ label,
     font-size: 80%;
 }
 
-#guesser .aww,
-#guesser .yeah {
+.aww,
+.yeah {
     display: none;
 }
-#guesser.show-win .yeah,
-#guesser.gave-up .aww {
+.show-win .yeah,
+.gave-up .aww {
     display: block;
 }
-.show-win input[type="submit"],
+.show-win #submit-guess,
 .show-win #give-up,
-.gave-up input[type="submit"],
+.gave-up #submit-guess,
 .gave-up #give-up {
     display: none;
 }
 .show-win #new-guess,
 .gave-up #new-guess {
     font-size: 120%
+}
+.show-win #new-guess {
+    background: none;
+    border: none;
+    font-style: italic;
+    text-decoration: underline;
 }
 
 .try-hard {
@@ -150,4 +164,49 @@ label,
 }
 .gave-up.difficulty-hard .try-normal {
     display: block;
+}
+
+/* LEADERBOARD */
+
+.leaderboard-form label {
+    font-size: 80%;
+}
+
+.leaderboard {
+    margin-top: 10px;
+    display: none;
+}
+
+.show-leaderboard .leaderboard {
+    display: table;
+}
+.show-leaderboard #after-guesses-container,
+.show-leaderboard #before-guesses-container,
+.show-leaderboard .leaderboard-form,
+.show-leaderboard .fixed-width-label {
+    display: none
+}
+
+
+td, th {
+    padding: 5px;
+}
+
+th {
+    text-align: left;
+    border-bottom: 1px solid black;
+    background-color: white;
+}
+
+thead, th {
+    position: sticky;
+    top: 0px;
+}
+
+td {
+    text-align: right;
+}
+
+td:first-child { /* name should be left aligned other fields, which are number should be right aligned */
+    text-align: left;
 }
