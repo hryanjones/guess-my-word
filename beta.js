@@ -338,7 +338,9 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
         guesses,
     };
     const timezonelessDate = getTimezonelessLocalDate(startTime);
-    fetch(`http://localhost:8080/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
+    let responseStatus;
+
+    fetch(`https://home.hryanjones.com/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
         method: 'POST',
         mode: 'cors',
         cache: 'no-store', // *default, no-cache, reload, force-cache, only-if-cached
@@ -347,10 +349,26 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
         },
         body: JSON.stringify(data),
     })
-        .then(response => response.json())
-        .then(normalizeAndSortLeaders)
+        .then((response) => {
+            responseStatus = response.status;
+            return response.json();
+        })
+        .catch(handleBadResponse)
+        .then((json) => {
+            if (responseStatus !== 200) {
+                handleBadResponse(json);
+            }
+            return normalizeAndSortLeaders(json);
+        })
         .then(renderLeaderboard);
     return false;
+}
+
+function handleBadResponse(json) {
+    const invalidReason = (json && json.invalidReason)
+        || 'Unknown issue with leaderboard (please contact @hryanjones if it persists)';
+    getElement('leaderboard-validation-error').innerText = invalidReason;
+    throw new Error(invalidReason);
 }
 
 function normalizeAndSortLeaders(leadersByName) {

@@ -172,9 +172,20 @@ form {
     font-size: 80%;
 }
 
+#leaderboard-validation-error {
+    color: darkred;
+    font-style: italic;
+    font-size: 80%
+}
+
 .leaderboard {
     margin-top: 10px;
     display: none;
+}
+
+.leaderboard table {
+    border-collapse: separate;
+    border-spacing: 15px 5px
 }
 
 .show-leaderboard .leaderboard {
@@ -188,9 +199,6 @@ form {
 }
 
 
-td, th {
-    padding: 5px;
-}
 
 th {
     text-align: left;
