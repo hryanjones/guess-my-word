@@ -77,7 +77,7 @@ h1 {
     text-transform: lowercase;
 }
 form input[type="submit"] {
-    width: 60px;
+    padding: 1px 10px;
 }
 
 form {
@@ -172,6 +172,10 @@ form {
     font-size: 80%;
 }
 
+.show-win.awfully-lucky .yeah.leaderboard-form {
+    display: none; /* don't offer leaderboard form if they got it in one guess */
+}
+ 
 #leaderboard-validation-error {
     color: darkred;
     font-style: italic;
@@ -186,6 +190,16 @@ form {
 .leaderboard table {
     border-collapse: separate;
     border-spacing: 15px 5px
+}
+
+.leaderboard h2::after {
+    font-style: italic;
+}
+.difficulty-hard .leaderboard h2::after {
+    content: 'hard word';
+}
+.difficulty-normal .leaderboard h2::after {
+    content: 'normal word';
 }
 
 .show-leaderboard .leaderboard {

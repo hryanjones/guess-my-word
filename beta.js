@@ -42,6 +42,7 @@ function setup() {
     removeClass('gave-up');
     removeClass('difficulty-hard');
     removeClass('difficulty-normal');
+    removeClass('awfully-lucky');
 
     getContainer().classList.add(`difficulty-${difficulty}`);
 
@@ -53,6 +54,10 @@ function setup() {
     getElement('before-label').classList.add('initially-hidden');
     getElement('after-label').classList.add('initially-hidden');
     getElement('give-up').classList.add('initially-hidden');
+
+    // fix leaderboard state
+    getElement('leaderboard-validation-error').innerText = '';
+    setDisabledForLeaderboardForm(false);
 }
 
 function setWordAndDate() {
@@ -173,6 +178,10 @@ function handleWin() {
     stats.innerText = `(${guesses.length} guesses in ${getFormattedTime(winTime - startTime)})`;
     getInput().disabled = true;
     getContainer().classList.add('show-win');
+    if (guesses.length === 1) {
+        getContainer().classList.add('awfully-lucky');
+        return;
+    }
 
     getElement('leaderboard-name').focus();
 }
@@ -340,6 +349,8 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
     const timezonelessDate = getTimezonelessLocalDate(startTime);
     let responseStatus;
 
+    setDisabledForLeaderboardForm(true);
+
     fetch(`https://home.hryanjones.com/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
         method: 'POST',
         mode: 'cors',
@@ -364,10 +375,18 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
     return false;
 }
 
+function setDisabledForLeaderboardForm(disabled = false) {
+    getElement('leaderboard-name').disabled = disabled;
+    const leaderboardSubmitButton = getElement('submit-to-leaderboard');
+    leaderboardSubmitButton.disabled = disabled;
+    leaderboardSubmitButton.value = disabled ? 'sending...' : 'submit';
+}
+
 function handleBadResponse(json) {
     const invalidReason = (json && json.invalidReason)
         || 'Unknown issue with leaderboard (please contact @hryanjones if it persists)';
     getElement('leaderboard-validation-error').innerText = invalidReason;
+    setDisabledForLeaderboardForm(false);
     throw new Error(invalidReason);
 }
 
