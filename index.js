@@ -13,11 +13,9 @@ const BEFORE = 'before';
 const AFTER = 'after';
 let guesses = [];
 let startTime;
+let winTime;
 let word;
 let difficulty = 'normal';
-
-// will be used for leaderboard
-let timezonelessDate; // eslint-disable-line no-unused-vars
 
 setup();
 
@@ -36,39 +34,44 @@ function setup() {
     // reset stats
     guesses = [];
     startTime = null;
+    winTime = null;
 
     // remove possible win/gave-up state
     removeClass('show-win');
+    removeClass('show-leaderboard');
     removeClass('gave-up');
     removeClass('difficulty-hard');
     removeClass('difficulty-normal');
+    removeClass('awfully-lucky');
 
-    getForm().classList.add(`difficulty-${difficulty}`);
+    getContainer().classList.add(`difficulty-${difficulty}`);
 
     // remove old guesses
-    document.getElementById('after-guesses').innerHTML = '';
-    document.getElementById('before-guesses').innerHTML = '';
+    getElement('after-guesses').innerHTML = '';
+    getElement('before-guesses').innerHTML = '';
 
     // make labels and give up hidden again
-    document.getElementById('before-label').classList.add('initially-hidden');
-    document.getElementById('after-label').classList.add('initially-hidden');
-    document.getElementById('give-up').classList.add('initially-hidden');
+    getElement('before-label').classList.add('initially-hidden');
+    getElement('after-label').classList.add('initially-hidden');
+    getElement('give-up').classList.add('initially-hidden');
+
+    // fix leaderboard state
+    getElement('leaderboard-validation-error').innerText = '';
+    setDisabledForLeaderboardForm(false);
 }
 
 function setWordAndDate() {
-    const now = new Date();
+    startTime = new Date();
 
     // Note: We don't want to set the word until the user starts playing as then 
     // it'd be possible for their start date and the expected word on that date 
     // not to match (and the eventual backend will verify this)
-    const dayOfYear = getDOY(now);
+    const dayOfYear = getDOY(startTime);
 
     // FIXME need to fix this so it works into next year.
     const index = dayOfYear - 114;
     ensureDifficultyMatchesDropdown();
     word = possibleWords[difficulty][index];
-
-    timezonelessDate = getTimezonelessLocalDate(now);
 }
 
 function ensureDifficultyMatchesDropdown() {
@@ -79,11 +82,11 @@ function ensureDifficultyMatchesDropdown() {
 }
 
 function getInput() {
-    return document.getElementById('new-guess');
+    return getElement('new-guess');
 }
 
-function getForm() {
-    return document.getElementById('guesser');
+function getContainer() {
+    return getElement('container');
 }
 
 function getGuesses() {
@@ -91,7 +94,7 @@ function getGuesses() {
 }
 
 function getDifficultyChanger() {
-    return document.getElementById('difficulty-changer');
+    return getElement('difficulty-changer');
 }
 
 function resetValidation() { // eslint-disable-line no-unused-vars
@@ -110,7 +113,7 @@ function makeGuess(/* event */) { // eslint-disable-line no-unused-vars
     }
 
     updateStats();
-    document.getElementById('give-up').classList.remove('initially-hidden');
+    getElement('give-up').classList.remove('initially-hidden');
 
     if (!word) {
         setWordAndDate();
@@ -128,9 +131,6 @@ function makeGuess(/* event */) { // eslint-disable-line no-unused-vars
 
     function updateStats() {
         guesses.push(guess);
-        if (!startTime) {
-            startTime = new Date();
-        }
     }
 }
 
@@ -173,15 +173,21 @@ function getComparisonToTargetWord(guess) {
 }
 
 function handleWin() {
-    const stats = document.getElementById('stats');
-    const winTime = new Date();
-    stats.innerText = `(${guesses.length} guesses in ${getFormattedTime(startTime, winTime)})`;
+    const stats = getElement('stats');
+    winTime = new Date();
+    stats.innerText = `(${guesses.length} guesses in ${getFormattedTime(winTime - startTime)})`;
     getInput().disabled = true;
-    getForm().classList.add('show-win');
+    getContainer().classList.add('show-win');
+    if (guesses.length === 1) {
+        getContainer().classList.add('awfully-lucky');
+        return;
+    }
+
+    getElement('leaderboard-name').focus();
 }
 
-function getFormattedTime(start, end) {
-    let seconds = Math.round((end - start) / 1000);
+function getFormattedTime(milliseconds) {
+    let seconds = Math.round((milliseconds) / 1000);
     const hours = Math.floor(seconds / 3600);
     seconds %= 3600;
     const minutes = Math.floor(seconds / 60);
@@ -225,7 +231,7 @@ function recordGuess(guess, comparison) {
 }
 
 function insertGuess(guessElement, comparison) {
-    const guessContainer = document.getElementById(`${comparison}-guesses`);
+    const guessContainer = getElement(`${comparison}-guesses`);
     const method = comparison === AFTER ? 'after' : 'before';
     const previousGuesses = Array.from(guessContainer.children);
     if (comparison === AFTER) {
@@ -248,7 +254,7 @@ function guessIsNext(previousGuessElement, guessElement, comparison) {
 }
 
 function revealLabel(comparison) {
-    document.getElementById(`${comparison}-label`).classList.remove('initially-hidden');
+    getElement(`${comparison}-label`).classList.remove('initially-hidden');
 }
 
 function removeClass(className) {
@@ -265,12 +271,12 @@ function giveUp() { // eslint-disable-line no-unused-vars
     const input = getInput();
     input.value = word;
     input.disabled = true;
-    getForm().classList.add('gave-up');
+    getContainer().classList.add('gave-up');
 }
 
 function changeDifficulty(givenDifficulty) { // eslint-disable-line no-unused-vars
     const haveMadeGuesses = getGuesses().length > 0;
-    const formClasses = getForm().classList;
+    const formClasses = getContainer().classList;
     const haveWonOrGivenUp = formClasses.contains('show-win') || formClasses.contains('gave-up');
     const difficultyChanger = getDifficultyChanger();
     if (haveMadeGuesses && !haveWonOrGivenUp && !confirm('Change difficulty and lose current guesses?')) {
@@ -292,11 +298,11 @@ function getTimezonelessLocalDate(date) {
 }
 
 function getMonth(date) {
-    return leftPad(date.getDate().toString(), 2);
+    return leftPad(date.getMonth().toString(), 2);
 }
 
 function getMonthDay(date) {
-    return leftPad(date.getMonth().toString(), 2);
+    return leftPad(date.getDate().toString(), 2);
 }
 
 function leftPad(string, desiredLength, character = '0') {
@@ -304,6 +310,10 @@ function leftPad(string, desiredLength, character = '0') {
         return string;
     }
     return leftPad(character + string, desiredLength);
+}
+
+function getElement(id) {
+    return document.getElementById(id);
 }
 
 // https://stackoverflow.com/questions/8619879/javascript-calculate-the-day-of-the-year-1-366
@@ -323,4 +333,99 @@ function getDOY(date) {
     if(mn > 1 && isLeapYear(date)) dayOfYear++;
     return dayOfYear;
 };
+
 /* eslint-enable */
+
+
+// LEADERBOARD
+
+function submitToLeaderboard() { // eslint-disable-line no-unused-vars
+    const data = {
+        name: getElement('leaderboard-name').value,
+        time: winTime - startTime,
+        guesses,
+    };
+    const timezonelessDate = getTimezonelessLocalDate(startTime);
+    let responseStatus;
+
+    setDisabledForLeaderboardForm(true);
+
+    fetch(`https://home.hryanjones.com/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
+        method: 'POST',
+        mode: 'cors',
+        cache: 'no-store', // *default, no-cache, reload, force-cache, only-if-cached
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+        .then((response) => {
+            responseStatus = response.status;
+            return response.json();
+        })
+        .catch(handleBadResponse)
+        .then((json) => {
+            if (responseStatus !== 200) {
+                handleBadResponse(json);
+            }
+            return normalizeAndSortLeaders(json);
+        })
+        .then(renderLeaderboard);
+    return false;
+}
+
+function setDisabledForLeaderboardForm(disabled = false) {
+    getElement('leaderboard-name').disabled = disabled;
+    const leaderboardSubmitButton = getElement('submit-to-leaderboard');
+    leaderboardSubmitButton.disabled = disabled;
+    leaderboardSubmitButton.value = disabled ? 'sending...' : 'submit';
+}
+
+function handleBadResponse(json) {
+    const invalidReason = (json && json.invalidReason)
+        || 'Unknown issue with leaderboard (please contact @hryanjones if it persists)';
+    getElement('leaderboard-validation-error').innerText = invalidReason;
+    setDisabledForLeaderboardForm(false);
+    throw new Error(invalidReason);
+}
+
+function normalizeAndSortLeaders(leadersByName) {
+    const leaders = [];
+    for (const name in leadersByName) {
+        const leader = leadersByName[name];
+        leader.name = name; // warning mutating inputs here, don't care YOLO
+        leaders.push(leader);
+    }
+    leaders.sort(sortByNumberOfGuesses);
+    return leaders;
+}
+
+function sortByNumberOfGuesses(leader1, leader2) {
+    if (leader1.numberOfGuesses > leader2.numberOfGuesses) {
+        return 1;
+    }
+    if (leader1.numberOfGuesses < leader2.numberOfGuesses) {
+        return -1;
+    }
+    return 0;
+}
+
+function renderLeaderboard(leaders) {
+    const leadersLines = document.createDocumentFragment();
+    leaders.forEach(renderTableLine);
+    const leaderboard = getElement('leaderboard');
+    leaderboard.innerHTML = '';
+    leaderboard.append(leadersLines);
+    getContainer().classList.add('show-leaderboard');
+
+    function renderTableLine(leader) {
+        const { name, numberOfGuesses, time } = leader;
+        const leaderLine = document.createElement('tr');
+        [name, numberOfGuesses, getFormattedTime(time)].forEach((cellContents) => {
+            const cell = document.createElement('td');
+            cell.innerText = cellContents;
+            leaderLine.append(cell);
+        });
+        leadersLines.append(leaderLine);
+    }
+}
