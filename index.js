@@ -350,6 +350,7 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
 
     setDisabledForLeaderboardForm(true);
 
+    // fetch(`http://localhost:8080/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
     fetch(`https://home.hryanjones.com/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
         method: 'POST',
         mode: 'cors',
