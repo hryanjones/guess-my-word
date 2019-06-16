@@ -298,7 +298,7 @@ function getTimezonelessLocalDate(date) {
 }
 
 function getMonth(date) {
-    return leftPad(date.getMonth().toString(), 2);
+    return leftPad((date.getMonth() + 1).toString(), 2);
 }
 
 function getMonthDay(date) {
