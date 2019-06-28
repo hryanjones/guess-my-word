@@ -397,15 +397,21 @@ function normalizeAndSortLeaders(leadersByName) {
         leader.name = name; // warning mutating inputs here, don't care YOLO
         leaders.push(leader);
     }
-    leaders.sort(sortByNumberOfGuesses);
+    leaders.sort(sortByGuessesThenTime);
     return leaders;
 }
 
-function sortByNumberOfGuesses(leader1, leader2) {
+function sortByGuessesThenTime(leader1, leader2) {
     if (leader1.numberOfGuesses > leader2.numberOfGuesses) {
         return 1;
     }
     if (leader1.numberOfGuesses < leader2.numberOfGuesses) {
+        return -1;
+    }
+    if (leader1.time > leader2.time) {
+        return 1;
+    }
+    if (leader1.time < leader2.time) {
         return -1;
     }
     return 0;
