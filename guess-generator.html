@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>GMW - new words</title>
+<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="./index.css"/>
+</head>
+<body>
+<header>
+    <h1>
+        <a href="./" class="home">Guess my word</a>
+        <select id="difficulty-changer" onchange="changeDifficulty()">
+            <option value="normal">normal</option>
+            <option value="hard">hard</option>
+        </select>
+    </h1>
+    <a class="bigger-target" href="./README.html">about</a>
+</header>
+
+<div style="display: flex">
+    <textarea id="new-words" rows="25"></textarea>
+    
+    <div id="new-words-errors" style="color: #c50000; margin-left: 20px; font-size: 13px">some error</div>
+</div>
+
+<script src="https://d2t3dun0il9ood.cloudfront.net/dictionary.js"></script>
+<script src="index.js"></script>
+<script>
+    ensureDifficultyMatchesDropdown(); // shouldn't be needed but doesn't hurt
+    getElement('new-words').onkeyup = validateNewWords;
+    getElement('new-words').focus();
+
+    function validateNewWords(e) {
+        if (e.which !== 13) return;
+        const newWords = getElement('new-words').value.split('\n');
+        const errorsInHTML = newWords
+            .map(newWord => {
+                if (!newWord) return;
+                const likeOldWord = possibleWords[difficulty].find(oldWord => oldWord.startsWith(newWord));
+                if (newWord === likeOldWord) {
+                    return `${newWord} a repeat from the past`;
+                }
+                if (likeOldWord) {
+                    return `${newWord} is too much like ${likeOldWord}`;
+                }
+                // make sure it's in our scrabble dictionary
+                const invalidReason = getInvalidReason(newWord);
+                if (invalidReason) {
+                    return `${newWord}: ${invalidReason}`;
+                }
+            })
+            .map(error => `<div>${error || '_'}</div>`)
+            .join('');
+
+        getElement('new-words-errors').innerHTML = errorsInHTML;
+    }
+</script>
+
+<!-- Uncomment to run tests in browser -->
+<!-- <script src="./tests.js"></script> -->
+
+</body>
+</html>

@@ -177,7 +177,7 @@ form {
 }
  
 #leaderboard-validation-error {
-    color: darkred;
+    color: #c50000;
     font-style: italic;
     font-size: 80%
 }
