@@ -16,11 +16,32 @@ let startTime;
 let winTime;
 let word;
 let difficulty = 'normal';
+let vueApp;
 
-setup();
+const UNKNOWN_LEADERBOARD_ERROR = "Sorry, can't contact the leaderboard right now. Please try again in a little bit. (please contact @hryanjones if it persists)";
 
-// fix input validation when typing
-getInput() && getInput().addEventListener('input', event => event.target.setCustomValidity(''));
+document.addEventListener('DOMContentLoaded', () => {
+    if (getElement('container')) {
+        vueApp = new Vue({
+            el: '#container',
+            data: {
+                leaders: [],
+            },
+            methods: {
+                submitToLeaderboard,
+                reset() {
+                    this.leaders = [];
+                }
+            },
+        });
+    }
+
+    setup();
+
+    // fix input validation when typing
+    getInput() && getInput().addEventListener('input', event => event.target.setCustomValidity(''));
+});
+
 
 function setup() {
     word = undefined;
@@ -42,6 +63,7 @@ function setup() {
     // remove possible win/gave-up state
     removeClass('show-win');
     removeClass('show-leaderboard');
+    vueApp.reset();
     removeClass('gave-up');
     removeClass('difficulty-hard');
     removeClass('difficulty-normal');
@@ -343,39 +365,55 @@ function getDOY(date) {
 // LEADERBOARD
 
 function submitToLeaderboard() { // eslint-disable-line no-unused-vars
-    const data = {
+    const postData = {
         name: getElement('leaderboard-name').value,
         time: winTime - startTime,
         guesses,
     };
     const timezonelessDate = getTimezonelessLocalDate(startTime);
-    let responseStatus;
 
     setDisabledForLeaderboardForm(true);
 
-    // fetch(`http://localhost:8080/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
-    fetch(`https://home.hryanjones.com/leaderboard/${timezonelessDate}/wordlist/${difficulty}`, {
-        method: 'POST',
+    const onSuccess = (json) => {
+        this.leaders = normalizeAndSortLeaders(json);
+        getContainer().classList.add('show-leaderboard');
+    };
+    makeLeaderboardRequest(timezonelessDate, difficulty, onSuccess, handleBadResponse, postData);
+}
+
+function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData) {
+    let responseStatus;
+    let body;
+    let method = 'GET';
+    let headers;
+    if (postData) {
+        method = 'POST';
+        headers = { 'Content-Type': 'application/json' };
+        body = JSON.stringify(postData);
+    }
+
+    const server = 'https://home.hryanjones.com';
+    // const server = 'http://192.168.1.6:8080';
+
+    fetch(`${server}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`, {
+        method,
         mode: 'cors',
         cache: 'no-store', // *default, no-cache, reload, force-cache, only-if-cached
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        headers,
+        body,
     })
         .then((response) => {
             responseStatus = response.status;
             return response.json();
         })
-        .catch(handleBadResponse)
+        .catch(onFailure)
         .then((json) => {
             if (responseStatus !== 200) {
-                handleBadResponse(json);
+                onFailure(json);
+                return;
             }
-            return normalizeAndSortLeaders(json);
-        })
-        .then(renderLeaderboard);
-    return false;
+            onSuccess(json);
+        });
 }
 
 function setDisabledForLeaderboardForm(disabled = false) {
@@ -387,7 +425,7 @@ function setDisabledForLeaderboardForm(disabled = false) {
 
 function handleBadResponse(json) {
     const invalidReason = (json && json.invalidReason)
-        || 'Unknown issue with leaderboard (please contact @hryanjones if it persists)';
+        || UNKNOWN_LEADERBOARD_ERROR;
     getElement('leaderboard-validation-error').innerText = invalidReason;
     setDisabledForLeaderboardForm(false);
     throw new Error(invalidReason);
@@ -398,6 +436,7 @@ function normalizeAndSortLeaders(leadersByName) {
     for (const name in leadersByName) {
         const leader = leadersByName[name];
         leader.name = name; // warning mutating inputs here, don't care YOLO
+        leader.formattedTime = getFormattedTime(leader.time);
         leaders.push(leader);
     }
     leaders.sort(sortByGuessesThenTime);
@@ -418,24 +457,4 @@ function sortByGuessesThenTime(leader1, leader2) {
         return -1;
     }
     return 0;
-}
-
-function renderLeaderboard(leaders) {
-    const leadersLines = document.createDocumentFragment();
-    leaders.forEach(renderTableLine);
-    const leaderboard = getElement('leaderboard');
-    leaderboard.innerHTML = '';
-    leaderboard.append(leadersLines);
-    getContainer().classList.add('show-leaderboard');
-
-    function renderTableLine(leader) {
-        const { name, numberOfGuesses, time } = leader;
-        const leaderLine = document.createElement('tr');
-        [name, numberOfGuesses, getFormattedTime(time)].forEach((cellContents) => {
-            const cell = document.createElement('td');
-            cell.innerText = cellContents;
-            leaderLine.append(cell);
-        });
-        leadersLines.append(leaderLine);
-    }
 }

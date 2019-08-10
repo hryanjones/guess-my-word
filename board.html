@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Guess my word - Completion board</title>
+<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="./index.css"/>
+</head>
+<body>
+<div id="leaderboard-container">
+
+<header>
+    <h1>
+        <a href="./" class="home">Guess my word</a>
+        <select id="difficulty-changer" v-on:change="setDifficulty">
+            <option value="normal">normal</option>
+            <option value="hard">hard</option>
+        </select>
+    </h1>
+    <a class="bigger-target" href="./README.html">about</a>
+</header>
+
+<div class="leaderboard" v-cloak>
+    <h2>Completion board for "{{difficulty}}" today</h2>
+
+    <div class="error">{{error}}</div>
+
+    <div>{{message}}</div>
+    
+    <table v-if="leaders.length">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>total guesses</th>
+                <th>time</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard">
+            <tr v-for="leader in leaders">
+                <td>{{leader.name}}</td>
+                <td>{{leader.numberOfGuesses}}</td>
+                <td>{{leader.formattedTime}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</div>
+
+<script src="https://d2t3dun0il9ood.cloudfront.net/dictionary.js"></script>
+<script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+<script src="index.js"></script>
+<script>
+    function getLeaders() {
+        const date = getTimezonelessLocalDate(new Date());
+
+        const onSuccess = (json) => {
+            this.leaders = normalizeAndSortLeaders(json);
+            this.error = '';
+            if (this.leaders.length === 0) {
+                this.message = 'nobody has guessed the word for today';
+            }
+        }
+
+        const onFailure = (json) => {
+            this.leaders = [];
+            this.message = '';
+            this.error = UNKNOWN_LEADERBOARD_ERROR;
+        };
+        makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
+    }
+
+    new Vue({
+        el: '#leaderboard-container',
+        data: {
+            leaders: [],
+            difficulty: 'normal',
+            message: '',
+            error: '',
+        },
+        created() {
+            this.getLeaders();
+        },
+        methods: {
+            getLeaders,
+            setDifficulty(e) {
+                const newDifficulty = e.target.value;
+                this.difficulty = newDifficulty;
+                this.getLeaders();
+            }
+        },
+    });
+</script>
+
+<script src="/assets/js/googleAnalytics.js"></script>
+</body>
+</html>

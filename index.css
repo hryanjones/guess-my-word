@@ -22,13 +22,16 @@ header {
     flex-wrap: wrap;
 }
 
+[v-cloak] {
+    display: none;
+}
+
+
 .bigger-target,
 li, li a {
     padding: 8px;
 }
 
-a.home,
-a.home:visited,
 a#give-up,
 a#give-up:visited
 {
@@ -176,7 +179,8 @@ form {
     display: none; /* don't offer leaderboard form if they got it in one guess */
 }
  
-#leaderboard-validation-error {
+#leaderboard-validation-error,
+.error {
     color: #c50000;
     font-style: italic;
     font-size: 80%
@@ -184,7 +188,6 @@ form {
 
 .leaderboard {
     margin-top: 10px;
-    display: none;
 }
 
 .leaderboard table {
