@@ -67,7 +67,7 @@
         const onSuccess = (json) => {
             const {sortKey, direction} = this.sortConfig;
             this.leaders = sortLeaders(
-                normalizeAndSortLeaders(json),
+                normalizeLeaders(json),
                 sortKey,
                 direction
             );

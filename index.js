@@ -28,7 +28,7 @@ const LEADER_HEADER_FIELDS = [
 
 document.addEventListener('DOMContentLoaded', () => {
     if (getElement('container')) {
-        vueApp = new Vue({
+        vueApp = new Vue({ // eslint-disable-line no-undef
             el: '#container',
             data: {
                 LEADER_HEADER_FIELDS,
@@ -52,7 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setup();
 
     // fix input validation when typing
-    getInput() && getInput().addEventListener('input', event => event.target.setCustomValidity(''));
+    const input = getInput();
+    if (input) {
+        input.addEventListener('input', event => event.target.setCustomValidity(''));
+    }
 });
 
 
@@ -388,7 +391,12 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
     setDisabledForLeaderboardForm(true);
 
     const onSuccess = (json) => {
-        this.leaders = normalizeAndSortLeaders(json);
+        const { sortKey, direction } = this.sortConfig;
+        this.leaders = sortLeaders(
+            normalizeLeaders(json),
+            sortKey,
+            direction,
+        );
         getContainer().classList.add('show-leaderboard');
     };
     makeLeaderboardRequest(timezonelessDate, difficulty, onSuccess, handleBadResponse, postData);
@@ -405,8 +413,8 @@ function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure
         body = JSON.stringify(postData);
     }
 
-    const server = 'https://home.hryanjones.com';
-    // const server = 'http://192.168.1.6:8080';
+    // const server = 'https://home.hryanjones.com';
+    const server = 'http://192.168.1.6:8080';
 
     fetch(`${server}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`, {
         method,
@@ -444,7 +452,7 @@ function handleBadResponse(json) {
     throw new Error(invalidReason);
 }
 
-function normalizeAndSortLeaders(leadersByName) {
+function normalizeLeaders(leadersByName) {
     const leaders = [];
     for (const name in leadersByName) {
         const leader = leadersByName[name];
@@ -452,24 +460,7 @@ function normalizeAndSortLeaders(leadersByName) {
         leader.formattedTime = getFormattedTime(leader.time);
         leaders.push(leader);
     }
-    leaders.sort(sortByGuessesThenTime);
     return leaders;
-}
-
-function sortByGuessesThenTime(leader1, leader2) {
-    if (leader1.numberOfGuesses > leader2.numberOfGuesses) {
-        return 1;
-    }
-    if (leader1.numberOfGuesses < leader2.numberOfGuesses) {
-        return -1;
-    }
-    if (leader1.time > leader2.time) {
-        return 1;
-    }
-    if (leader1.time < leader2.time) {
-        return -1;
-    }
-    return 0;
 }
 
 const OPPOSITE_SORT_DIRECTION = {
@@ -478,7 +469,7 @@ const OPPOSITE_SORT_DIRECTION = {
 };
 
 function changeLeaderSort(newKey, newSortKey) {
-    let {direction, key, sortKey} = this.sortConfig;
+    let { direction, key, sortKey } = this.sortConfig;
     if (newKey === this.sortConfig.key) {
         direction = OPPOSITE_SORT_DIRECTION[direction];
     } else {
@@ -491,26 +482,38 @@ function changeLeaderSort(newKey, newSortKey) {
     this.leaders = sortLeaders(this.leaders, sortKey, direction);
 }
 
+const SECONDARY_SORT_KEY_BY_PRIMARY_SORT_KEY = {
+    name: null, // don't need a secondary sort key as name should be unique
+    numberOfGuesses: 'time',
+    time: 'numberOfGuesses',
+};
+
 function sortLeaders(leaders, sortKey, direction) {
     return sortArrayByKey(leaders, sortKey, direction);
 }
 
 function sortArrayByKey(array, key, direction) {
     const sorter = direction === 'descending' ? sortByKeyDesc : sortByKeyAsc;
-    array = array.slice(0);
-    return array.sort(sorter);
+    const arrayCopy = array.slice(0);
+    const secondaryKey = SECONDARY_SORT_KEY_BY_PRIMARY_SORT_KEY[key];
+    return arrayCopy.sort((first, second) => sorter(first, second, key, secondaryKey));
+}
 
-    function sortByKeyAsc(first, second) {
-        if (first[key] > second[key]) {
-            return 1;
-        }
-        if (first[key] < second[key]) {
-            return -1;
-        }
-        return 0;
+function sortByKeyAsc(first, second, key, secondaryKey) {
+    if (first[key] > second[key]) {
+        return 1;
+    }
+    if (first[key] < second[key]) {
+        return -1;
     }
 
-    function sortByKeyDesc(first, second) {
-        return -1 * sortByKeyAsc(first, second);
+    if (secondaryKey) {
+        return sortByKeyAsc(first, second, secondaryKey);
     }
+
+    return 0;
+}
+
+function sortByKeyDesc(first, second, key, secondaryKey) {
+    return -1 * sortByKeyAsc(first, second, key, secondaryKey);
 }
