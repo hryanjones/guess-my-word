@@ -20,18 +20,31 @@ let vueApp;
 
 const UNKNOWN_LEADERBOARD_ERROR = "Sorry, can't contact the leaderboard right now. Please try again in a little bit. (please contact @hryanjones if it persists)";
 
+const LEADER_HEADER_FIELDS = [
+    { text: 'name', key: 'name', sortKey: 'name' },
+    { text: '# guesses', key: 'numberOfGuesses', sortKey: 'numberOfGuesses' },
+    { text: 'time', key: 'formattedTime', sortKey: 'time' },
+];
+
 document.addEventListener('DOMContentLoaded', () => {
     if (getElement('container')) {
         vueApp = new Vue({
             el: '#container',
             data: {
+                LEADER_HEADER_FIELDS,
                 leaders: [],
+                sortConfig: {
+                    key: 'numberOfGuesses',
+                    sortKey: 'numberOfGuesses',
+                    direction: 'ascending',
+                },
             },
             methods: {
                 submitToLeaderboard,
                 reset() {
                     this.leaders = [];
-                }
+                },
+                changeLeaderSort,
             },
         });
     }
@@ -457,4 +470,47 @@ function sortByGuessesThenTime(leader1, leader2) {
         return -1;
     }
     return 0;
+}
+
+const OPPOSITE_SORT_DIRECTION = {
+    ascending: 'descending',
+    descending: 'ascending',
+};
+
+function changeLeaderSort(newKey, newSortKey) {
+    let {direction, key, sortKey} = this.sortConfig;
+    if (newKey === this.sortConfig.key) {
+        direction = OPPOSITE_SORT_DIRECTION[direction];
+    } else {
+        key = newKey;
+        sortKey = newSortKey || newKey;
+    }
+
+    this.sortConfig = { direction, key, sortKey };
+
+    this.leaders = sortLeaders(this.leaders, sortKey, direction);
+}
+
+function sortLeaders(leaders, sortKey, direction) {
+    return sortArrayByKey(leaders, sortKey, direction);
+}
+
+function sortArrayByKey(array, key, direction) {
+    const sorter = direction === 'descending' ? sortByKeyDesc : sortByKeyAsc;
+    array = array.slice(0);
+    return array.sort(sorter);
+
+    function sortByKeyAsc(first, second) {
+        if (first[key] > second[key]) {
+            return 1;
+        }
+        if (first[key] < second[key]) {
+            return -1;
+        }
+        return 0;
+    }
+
+    function sortByKeyDesc(first, second) {
+        return -1 * sortByKeyAsc(first, second);
+    }
 }

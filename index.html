@@ -88,18 +88,23 @@
         <h2>Completion board for </h2>
 
         <table>
-            <thead>
-                <tr>
-                    <th>name</th>
-                    <th>total guesses</th>
-                    <th>time</th>
-                </tr>
-            </thead>
+        <thead>
+            <tr>
+                <th v-for="field in LEADER_HEADER_FIELDS" v-on:click="changeLeaderSort(field.key, field.sortKey)">
+                    <div class="leader-table-header-cell">
+                        <div>{{field.text}}</div>
+                        <div v-if="sortConfig.key === field.key" style="margin-left: 5px;">
+                            {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
+                        </div>
+                    </div>
+                </th>
+            </tr>
+        </thead>
             <tbody id="leaderboard">
                 <tr v-for="leader in leaders">
                     <td>{{leader.name}}</td>
                     <td>{{leader.numberOfGuesses}}</td>
-                    <td>{{getFormattedTime(leader.time)}}</td>
+                    <td>{{leader.formattedTime}}</td>
                 </tr>
             </tbody>
         </table>

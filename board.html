@@ -30,9 +30,20 @@
     <table v-if="leaders.length">
         <thead>
             <tr>
-                <th>name</th>
-                <th>total guesses</th>
-                <th>time</th>
+                <th 
+                    v-for="field in LEADER_HEADER_FIELDS"
+                    v-on:click="changeLeaderSort(field.key, field.sortKey)"
+                >
+                    <div class="leader-table-header-cell">
+                        <div>{{field.text}}</div>
+                        <div
+                            v-if="sortConfig.key === field.key"
+                            style="margin-left: 5px;"
+                        >
+                            {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
+                        </div>
+                    </div>
+                </th>
             </tr>
         </thead>
         <tbody id="leaderboard">
@@ -72,10 +83,16 @@
     new Vue({
         el: '#leaderboard-container',
         data: {
+            LEADER_HEADER_FIELDS,
             leaders: [],
             difficulty: 'normal',
             message: '',
             error: '',
+            sortConfig: {
+                key: 'numberOfGuesses',
+                sortKey: 'numberOfGuesses',
+                direction: 'ascending',
+            },
         },
         created() {
             this.getLeaders();
@@ -86,7 +103,8 @@
                 const newDifficulty = e.target.value;
                 this.difficulty = newDifficulty;
                 this.getLeaders();
-            }
+            },
+            changeLeaderSort,
         },
     });
 </script>

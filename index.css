@@ -218,7 +218,6 @@ form {
 
 
 th {
-    text-align: left;
     border-bottom: 1px solid black;
     background-color: white;
 }
@@ -226,6 +225,12 @@ th {
 thead, th {
     position: sticky;
     top: 0px;
+    cursor: pointer;
+}
+
+.leader-table-header-cell {
+    display: flex;
+    justify-content: space-between;
 }
 
 td {
