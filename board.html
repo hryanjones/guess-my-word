@@ -65,7 +65,12 @@
         const date = getTimezonelessLocalDate(new Date());
 
         const onSuccess = (json) => {
-            this.leaders = normalizeAndSortLeaders(json);
+            const {sortKey, direction} = this.sortConfig;
+            this.leaders = sortLeaders(
+                normalizeAndSortLeaders(json),
+                sortKey,
+                direction
+            );
             this.error = '';
             if (this.leaders.length === 0) {
                 this.message = 'nobody has guessed the word for today';
