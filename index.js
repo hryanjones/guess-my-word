@@ -413,8 +413,8 @@ function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure
         body = JSON.stringify(postData);
     }
 
-    // const server = 'https://home.hryanjones.com';
-    const server = 'http://192.168.1.6:8080';
+    const server = 'https://home.hryanjones.com';
+    // const server = 'http://192.168.1.6:8080';
 
     fetch(`${server}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`, {
         method,
