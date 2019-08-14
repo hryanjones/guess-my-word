@@ -24,6 +24,7 @@ const LEADER_HEADER_FIELDS = [
     { text: 'name', key: 'name', sortKey: 'name' },
     { text: '# guesses', key: 'numberOfGuesses', sortKey: 'numberOfGuesses' },
     { text: 'time', key: 'formattedTime', sortKey: 'time' },
+    { text: 'awards', key: 'awards', sortKey: 'awards' },
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -393,7 +394,7 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
     const onSuccess = (json) => {
         const { sortKey, direction } = this.sortConfig;
         this.leaders = sortLeaders(
-            normalizeLeaders(json),
+            normalizeLeadersAndAddAwards(json),
             sortKey,
             direction,
         );
@@ -452,15 +453,48 @@ function handleBadResponse(json) {
     throw new Error(invalidReason);
 }
 
-function normalizeLeaders(leadersByName) {
+function normalizeLeadersAndAddAwards(leadersByName) {
     const leaders = [];
+    
+    const fastest = { time: Infinity, names: [] };
+    const fewestGuesses = { numberOfGuesses: Infinity, names: [] };
+    const first = { submitTime: 'ZZZZ', names: [] }; // submitTime is ISO string
+
     for (const name in leadersByName) {
         const leader = leadersByName[name];
         leader.name = name; // warning mutating inputs here, don't care YOLO
         leader.formattedTime = getFormattedTime(leader.time);
+        leader.awards = [];
         leaders.push(leader);
+
+        recordAwards(leader, fastest, 'time');
+        recordAwards(leader, fewestGuesses, 'numberOfGuesses');
+        recordAwards(leader, first, 'submitTime');
     }
+
+    addAwards(fastest.names, leadersByName, '🏆 fastest');
+    addAwards(fewestGuesses.names, leadersByName, '🏆 fewest guesses');
+    addAwards(first.names, leadersByName, '🏅 first guesser');
+
+    leaders.forEach(leader => {
+        leader.awards = leader.awards.join(', ');
+    });
     return leaders;
+}
+
+function recordAwards(leader, tracker, key) {
+    if (leader[key] < tracker[key]) {
+        tracker[key] = leader[key];
+        tracker.names = [leader.name];
+    } else if (leader[key] === tracker[key]) {
+        tracker.names.push(leader.name);
+    }
+}
+
+function addAwards(names, leadersByName, award) {
+    names.forEach(name => {
+        leadersByName[name].awards.push(award);
+    });
 }
 
 const OPPOSITE_SORT_DIRECTION = {

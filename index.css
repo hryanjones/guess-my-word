@@ -237,6 +237,7 @@ td {
     text-align: right;
 }
 
-td:first-child { /* name should be left aligned other fields, which are number should be right aligned */
+td:first-child,
+td:last-child { /* name and award should be left aligned other fields, which are number should be right aligned */
     text-align: left;
 }

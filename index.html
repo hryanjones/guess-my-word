@@ -102,9 +102,9 @@
         </thead>
             <tbody id="leaderboard">
                 <tr v-for="leader in leaders">
-                    <td>{{leader.name}}</td>
-                    <td>{{leader.numberOfGuesses}}</td>
-                    <td>{{leader.formattedTime}}</td>
+                    <td v-for="field in LEADER_HEADER_FIELDS">
+                        {{leader[field.key]}}
+                    </td>
                 </tr>
             </tbody>
         </table>
