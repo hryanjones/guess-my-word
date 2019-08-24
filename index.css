@@ -188,7 +188,6 @@ form {
 
 .leaderboard {
     margin-top: 10px;
-    margin-bottom: 40px; // partly to allow viewing even when survey link is showing
 }
 
 .leaderboard table {
@@ -241,19 +240,4 @@ td {
 td:first-child,
 td:last-child { /* name and award should be left aligned other fields, which are number should be right aligned */
     text-align: left;
-}
-
-#survey {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: indigo;
-    color: white;
-    padding: 5px;
-}
-
-#survey a {
-    color: powderblue;
-    font-size: 1.5em;
 }
