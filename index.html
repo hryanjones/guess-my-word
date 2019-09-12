@@ -7,10 +7,24 @@
 <link rel="stylesheet" href="./index.css"/>
 </head>
 <body>
+<div
+    id="container"
+    v-bind:class="{
+        'show-win': winTime,
+        'gave-up': gaveUpTime,
+        'show-leaderboard': leaders,
+    }"
+>
+
 <header>
     <h1>
         <a href="./" class="home">Guess my word</a>
-        <select id="difficulty-changer" onchange="changeDifficulty()">
+        <select 
+            id="difficulty-changer"
+            v-on:change="toggleDifficulty"
+            v-bind:value="difficulty"
+            v-cloak
+        >
             <option value="normal">normal</option>
             <option value="hard">hard</option>
         </select>
@@ -25,67 +39,130 @@
     guess.
 </p>
 
-<div id="container">
-    <div id="after-guesses-container">
-        <label id="after-label" class="initially-hidden fixed-width-label" title="My word is after these words">
+<h3 v-if="false" style="margin-left: 78px;">Loading...</h3>
+<div v-cloak>
+    <div id="after-guesses-container" v-if="afterGuesses.length && !leaders">
+        <label id="after-label" class="fixed-width-label" title="My word is after these words">
             is after:
         </label>
-        <div id="after-guesses">
+        <div>
+            <!-- FIXME how reuse the guess template? -->
+            <div
+                v-for="guess in afterGuesses"
+                class="guess"
+                v-bind:class="{
+                    'current-guess': guesses.slice(-1)[0] === guess,
+                }"
+            >
+                {{guess}}
+            </div>
         </div>
     </div>
     <div id="guesser">
         <label class="fixed-width-label"><!-- cheap spacing--></label>
         <div>
-            <h2 class="yeah">You got it! 🎉🎉🎉</h2>
-            <p class="yeah" id="stats"></p>
-            <h3 class="aww">My word is:</h3>
-            <form name="guesser" onsubmit="return makeGuess()" autocomplete="off">
-                <input id="new-guess" type="text" onchange="resetValidation()" placeholder="type a word then -->" autocomplete="off"/>
-                <input id="submit-guess" type="submit" value="guess"/>
+            <h2 v-if="winTime">You got it! 🎉🎉🎉</h2>
+            <p v-if="winTime">
+                ({{guesses.length}} guesses in {{getFormattedTime(winTime - startTime)}})
+            </p>
+            <h3 v-if="gaveUpTime">My word is:</h3>
+            <form name="guesser" v-on:submit.prevent="makeGuess" autocomplete="off">
+                <input 
+                    id="new-guess"
+                    placeholder="type a word then -->" 
+                    type="text"
+                    autocomplete="off"
+                    v-on:input="setGuess" 
+                    v-bind:disabled="winTime || gaveUpTime"
+                    v-bind:value="guessValue"
+                />
+                <input
+                    id="submit-guess"
+                    type="submit"
+                    value="guess"
+                    v-bind:disabled="winTime || gaveUpTime"
+                />
 
-                <a id="give-up" href="#" onclick="giveUp()" class="initially-hidden">give up :(</a>
+                <a
+                    id="give-up"
+                    href="#"
+                    v-on:click="giveUp"
+                    v-if="guesses.length && !gaveUpTime"
+                >
+                    give up :(
+                </a>
+
+                <div class="error" v-if="guessError" style="margin: 5px 0px;">
+                    {{guessError}}
+                </div>
+
             </form>
 
-            <form class="yeah leaderboard-form" v-on:submit.prevent="submitToLeaderboard">
+            <form
+                class="leaderboard-form"
+                v-if="winTime && guesses.length > 2"
+                v-on:submit.prevent="submitToLeaderboard"
+                v-cloak
+            >
                 <br/>
                 <label>
                     enter your name for the completion board<br/>                    
                     <input
-                        id="leaderboard-name"
                         autocomplete="on"
                         required
                         minlength="1"
                         maxlength="128"
                         type="text"
+                        v-bind:disabled="leaderboardRequest"
+                        v-focus
                     />
                 </label>
-                <div id="leaderboard-validation-error"></div>
-                <br/>
-                <input id="submit-to-leaderboard" type="submit" value="submit" />
+                <input
+                    id="submit-to-leaderboard"
+                    type="submit"
+                    value="submit"
+                    v-bind:disabled="leaderboardRequest"
+                />
+                <div class="error" v-if="leaderSubmitError" style="margin: 5px 0px;">
+                    {{leaderSubmitError}}
+                </div>
             </form>
 
-            <h4 class="aww">
+            <h4 v-if="gaveUpTime">
                 better luck tomorrow
-                <span class="try-normal">or 
-                    <a href="#" onclick="changeDifficulty('normal')">try a normal word</a>?
+                <span v-if="difficulty === 'hard'">or 
+                    <a
+                        href="#" 
+                        v-on:click="toggleDifficulty"
+                    >
+                        try a normal word</a>?
                 </span>
             </h4>
         </div>
     </div>
-    <div id="before-guesses-container">
-        <label id="before-label" class="initially-hidden fixed-width-label" title="My word is before these words">
+    <div id="before-guesses-container" v-if="beforeGuesses.length && !leaders">
+        <label id="before-label" class="fixed-width-label" title="My word is before these words">
             is before:
         </label>
         <div id="before-guesses">
+            <div 
+                v-for="guess in beforeGuesses"
+                class="guess"
+                v-bind:class="{
+                    'current-guess': guesses.slice(-1)[0] === guess,
+                }">
+                {{guess}}
+            </div>
         </div>
     </div>
-    <div class="leaderboard" v-if="leaders.length" v-cloak>
+
+    <div class="leaderboard" v-if="leaders && leaders.length" v-cloak>
         come back tomorrow for a new word
-        <span class="try-hard">or
-            <a href="#" onclick="changeDifficulty('hard')">try a hard word</a>?
+        <span v-if="difficulty === 'normal'">or
+            <a href="#" v-on:click="toggleDifficulty">try a hard word</a>?
         </span>
 
-        <h2>Completion board for </h2>
+        <h2>Completion board for "{{difficulty}}" word</h2>
 
         <table>
         <thead>
@@ -109,6 +186,8 @@
             </tbody>
         </table>
     </div>
+</div>
+
 </div>
 
 

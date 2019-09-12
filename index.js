@@ -1,3 +1,5 @@
+/* global Vue */
+
 /* eslint-disable */
 const possibleWords = {
     // normal words were from 1-1,000 common English words on TV and movies https://en.wiktionary.org/wiki/Wiktionary:Frequency_lists/TV/2006/1-1000
@@ -11,11 +13,8 @@ const possibleWords = {
 const WIN = 'win';
 const BEFORE = 'before';
 const AFTER = 'after';
-let guesses = [];
-let startTime;
-let winTime;
-let word;
-let difficulty = 'normal';
+const HARD = 'hard';
+const NORMAL = 'normal';
 let vueApp;
 
 const UNKNOWN_LEADERBOARD_ERROR = "Sorry, can't contact the leaderboard right now. Please try again in a little bit. (please contact @hryanjones if it persists)";
@@ -27,13 +26,31 @@ const LEADER_HEADER_FIELDS = [
     { text: 'awards', key: 'awards', sortKey: 'awards' },
 ];
 
+Vue.directive('focus', {
+    inserted: (el) => {
+        el.focus();
+    },
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     if (getElement('container')) {
-        vueApp = new Vue({ // eslint-disable-line no-undef
+        vueApp = new Vue({
             el: '#container',
             data: {
+                guesses: [],
+                difficulty: NORMAL,
+                startTime: null,
+                winTime: null,
+                gaveUpTime: null,
+                word: undefined,
+                guessValue: '',
+                guessError: '',
+                afterGuesses: [],
+                beforeGuesses: [],
                 LEADER_HEADER_FIELDS,
-                leaders: [],
+                leaders: null,
+                leaderboardRequest: null,
+                leaderSubmitError: '',
                 sortConfig: {
                     key: 'numberOfGuesses',
                     sortKey: 'numberOfGuesses',
@@ -41,86 +58,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
             },
             methods: {
+                reset,
+                setGuess,
+                getInvalidReason,
+                makeGuess,
+                getComparisonToTargetWord,
+                recordGuess,
+                getFormattedTime,
+                giveUp,
+                setWordAndDate,
+                toggleDifficulty,
                 submitToLeaderboard,
-                reset() {
-                    this.leaders = [];
-                },
                 changeLeaderSort,
             },
         });
     }
 
-    setup();
-
-    // fix input validation when typing
-    const input = getInput();
-    if (input) {
-        input.addEventListener('input', event => event.target.setCustomValidity(''));
+    if (vueApp) {
+        vueApp.reset();
     }
 });
 
 
-function setup() {
-    word = undefined;
+function reset() {
+    this.word = undefined;
 
-    // focus input
-    const input = getInput();
-    if (!input) {
-        return; // not on the main site (maybe in the guess generator)
-    }
-    input.disabled = false;
-    input.value = '';
-    input.focus();
+    this.guessValue = '';
+
 
     // reset stats
-    guesses = [];
-    startTime = null;
-    winTime = null;
-
-    // remove possible win/gave-up state
-    removeClass('show-win');
-    removeClass('show-leaderboard');
-    vueApp.reset();
-    removeClass('gave-up');
-    removeClass('difficulty-hard');
-    removeClass('difficulty-normal');
-    removeClass('awfully-lucky');
-
-    getContainer().classList.add(`difficulty-${difficulty}`);
-
-    // remove old guesses
-    getElement('after-guesses').innerHTML = '';
-    getElement('before-guesses').innerHTML = '';
-
-    // make labels and give up hidden again
-    getElement('before-label').classList.add('initially-hidden');
-    getElement('after-label').classList.add('initially-hidden');
-    getElement('give-up').classList.add('initially-hidden');
+    this.guesses = [];
+    this.afterGuesses = [];
+    this.beforeGuesses = [];
+    this.startTime = null;
+    this.winTime = null;
+    this.gaveUpTime = null;
 
     // fix leaderboard state
-    getElement('leaderboard-validation-error').innerText = '';
-    setDisabledForLeaderboardForm(false);
+    this.leaders = null;
+    this.leaderSubmitError = null;
+    this.leaderboardRequest = null;
+
+    Vue.nextTick(() => {
+        getInput().focus();
+    });
 }
 
 function setWordAndDate() {
-    startTime = new Date();
+    this.startTime = new Date();
 
     // Note: We don't want to set the word until the user starts playing as then 
     // it'd be possible for their start date and the expected word on that date 
     // not to match (and the eventual backend will verify this)
-    const dayOfYear = getDOY(startTime);
+    const dayOfYear = getDOY(this.startTime);
 
     // FIXME need to fix this so it works into next year.
     const index = dayOfYear - 114;
-    ensureDifficultyMatchesDropdown();
-    word = possibleWords[difficulty][index];
-}
-
-function ensureDifficultyMatchesDropdown() {
-    const dropdown = getDifficultyChanger();
-    if (difficulty !== dropdown.value) {
-        difficulty = dropdown.value;
-    }
+    this.word = possibleWords[this.difficulty][index];
 }
 
 function getInput() {
@@ -131,58 +125,39 @@ function getContainer() {
     return getElement('container');
 }
 
-function getGuesses() {
-    return document.getElementsByClassName('guess');
+function setGuess(event) {
+    this.guessValue = event.target.value;
+    if (this.guessError) {
+        this.guessError = this.getInvalidReason(sanitizeGuess(this.guessValue));
+    }
 }
 
-function getDifficultyChanger() {
-    return getElement('difficulty-changer');
-}
+function makeGuess() {
+    const guess = sanitizeGuess(this.guessValue);
+    this.guessError = this.getInvalidReason(guess);
 
-function resetValidation() { // eslint-disable-line no-unused-vars
-    const guess = getGuess();
-    const invalidReason = getInvalidReason(guess);
-    getInput().setCustomValidity(invalidReason);
-}
-
-function makeGuess(/* event */) { // eslint-disable-line no-unused-vars
-    const guess = getGuess();
-    const invalidReason = getInvalidReason(guess);
-    const input = getInput();
-    input.setCustomValidity(invalidReason);
-    if (invalidReason) {
-        return false;
+    if (this.guessError) {
+        return;
     }
 
-    updateStats();
-    getElement('give-up').classList.remove('initially-hidden');
+    this.guesses.push(guess);
 
-    if (!word) {
-        setWordAndDate();
+    if (!this.word) {
+        this.setWordAndDate();
     }
 
-    const comparison = getComparisonToTargetWord(guess);
+    const comparison = this.getComparisonToTargetWord(guess);
     if (comparison === WIN) {
-        handleWin();
-        return false;
+        this.winTime = new Date();
+        return;
     }
-    input.value = ''; // clear input to get ready for next guess
+    this.guessValue = ''; // clear input to get ready for next guess
 
-    recordGuess(guess, comparison);
-    return false;
-
-    function updateStats() {
-        guesses.push(guess);
-    }
+    this.recordGuess(guess, comparison);
 }
 
-function getGuess() {
-    const input = getInput();
-    return sanitizeGuess((input && input.value) || '');
-
-    function sanitizeGuess(guess) {
-        return guess.toLowerCase().trim().replace(/[^a-z]/g, '');
-    }
+function sanitizeGuess(guess) {
+    return guess.toLowerCase().trim().replace(/[^a-z]/g, '');
 }
 
 function getInvalidReason(guess) {
@@ -192,7 +167,7 @@ function getInvalidReason(guess) {
     if (!isAValidWord(guess)) {
         return 'Guess must be an English word. (Scrabble-acceptable)';
     }
-    if (guesses.includes(guess)) {
+    if (this.guesses.includes(guess)) {
         return "Oops, you've already guessed that word.";
     }
     return '';
@@ -208,24 +183,10 @@ function isAValidWord(guess) {
 }
 
 function getComparisonToTargetWord(guess) {
-    if (guess === word) {
+    if (guess === this.word) {
         return WIN;
     }
-    return guess > word ? BEFORE : AFTER;
-}
-
-function handleWin() {
-    const stats = getElement('stats');
-    winTime = new Date();
-    stats.innerText = `(${guesses.length} guesses in ${getFormattedTime(winTime - startTime)})`;
-    getInput().disabled = true;
-    getContainer().classList.add('show-win');
-    if (guesses.length === 1) {
-        getContainer().classList.add('awfully-lucky');
-        return;
-    }
-
-    getElement('leaderboard-name').focus();
+    return guess > this.word ? BEFORE : AFTER;
 }
 
 function getFormattedTime(milliseconds) {
@@ -251,86 +212,47 @@ function getFormattedTime(milliseconds) {
 
 
 function recordGuess(guess, comparison) {
-    removeClass('current-guess');
-
-    insertGuess(generateGuessElement(), comparison);
-
-    revealLabel(comparison);
-
-    function generateGuessElement() {
-        const numberOfGuesses = guesses.length;
-        const guessElement = document.createElement('div');
-        guessElement.className = 'guess current-guess';
-
-        guessElement.dataset.guess = guess;
-        guessElement.innerHTML = `
-            <span>${guess}</span>
-            <span class="guess-number" title="guess number ${numberOfGuesses}">
-                ${numberOfGuesses}
-            </span>`;
-        return guessElement;
-    }
+    const previousGuesses = comparison === AFTER ? this.afterGuesses : this.beforeGuesses;
+    insertIntoSortedArray(previousGuesses, guess);
 }
 
-function insertGuess(guessElement, comparison) {
-    const guessContainer = getElement(`${comparison}-guesses`);
-    const method = comparison === AFTER ? 'after' : 'before';
-    const previousGuesses = Array.from(guessContainer.children);
-    if (comparison === AFTER) {
-        previousGuesses.reverse();
-    }
-    for (const previousGuess of previousGuesses) {
-        if (guessIsNext(previousGuess, guessElement, comparison)) {
-            previousGuess[method](guessElement);
+function insertIntoSortedArray(array, newElement) {
+    for (let i = 0; i <= array.length; i += 1) {
+        const thisElement = array[i];
+        if (newElement < thisElement) {
+            array.splice(i, 0, newElement);
             return;
         }
     }
-    guessContainer[comparison === AFTER ? 'prepend' : 'append'](guessElement);
+    array.push(newElement);
 }
 
-function guessIsNext(previousGuessElement, guessElement, comparison) {
-    const { guess } = guessElement.dataset;
-    const previousGuess = previousGuessElement.dataset.guess;
-    return (comparison === AFTER && previousGuess < guess)
-        || (comparison === BEFORE && previousGuess > guess);
-}
-
-function revealLabel(comparison) {
-    getElement(`${comparison}-label`).classList.remove('initially-hidden');
-}
-
-function removeClass(className) {
-    const elementsWithClass = document.getElementsByClassName(className);
-    for (const element of elementsWithClass) {
-        element.classList.remove(className);
-    }
-}
-
-function giveUp() { // eslint-disable-line no-unused-vars
+function giveUp() {
     if (!confirm('Really give up?')) {
         return;
     }
-    const input = getInput();
-    input.value = word;
-    input.disabled = true;
-    getContainer().classList.add('gave-up');
+    this.guessValue = this.word;
+    this.gaveUpTime = new Date();
 }
 
-function changeDifficulty(givenDifficulty) { // eslint-disable-line no-unused-vars
-    const haveMadeGuesses = getGuesses().length > 0;
-    const formClasses = getContainer() && getContainer().classList;
-    const haveWonOrGivenUp = formClasses && (formClasses.contains('show-win') || formClasses.contains('gave-up'));
-    const difficultyChanger = getDifficultyChanger();
-    if (haveMadeGuesses && !haveWonOrGivenUp && !confirm('Change difficulty and lose current guesses?')) {
-        difficultyChanger.value = difficulty;
+const OTHER_DIFFICULTY = {
+    [NORMAL]: HARD,
+    [HARD]: NORMAL,
+};
+
+function toggleDifficulty() {
+    const haveMadeGuesses = this.guesses.length > 0;
+    const haveWonOrGivenUp = this.winTime || this.gaveUpTime;
+    if (!this.difficulty) {
+        this.difficulty = NORMAL;
         return;
     }
-    const newDifficulty = givenDifficulty || difficultyChanger.value;
-    if (newDifficulty !== difficultyChanger.value) {
-        difficultyChanger.value = newDifficulty;
+    if (haveMadeGuesses && !haveWonOrGivenUp && !confirm('Change difficulty and lose current guesses?')) {
+        this.$forceUpdate(); // need to make sure the changer dropdown is in the correct state
+        return;
     }
-    difficulty = newDifficulty;
-    setup();
+    this.difficulty = OTHER_DIFFICULTY[this.difficulty] || NORMAL;
+    this.reset();
 }
 
 // Utilities
@@ -381,15 +303,14 @@ function getDOY(date) {
 
 // LEADERBOARD
 
-function submitToLeaderboard() { // eslint-disable-line no-unused-vars
+function submitToLeaderboard(event) {
+    const name = event.target[0].value;
     const postData = {
-        name: getElement('leaderboard-name').value,
-        time: winTime - startTime,
-        guesses,
+        name,
+        time: this.winTime - this.startTime,
+        guesses: this.guesses,
     };
-    const timezonelessDate = getTimezonelessLocalDate(startTime);
-
-    setDisabledForLeaderboardForm(true);
+    const timezonelessDate = getTimezonelessLocalDate(this.startTime);
 
     const onSuccess = (json) => {
         const { sortKey, direction } = this.sortConfig;
@@ -398,9 +319,15 @@ function submitToLeaderboard() { // eslint-disable-line no-unused-vars
             sortKey,
             direction,
         );
-        getContainer().classList.add('show-leaderboard');
     };
-    makeLeaderboardRequest(timezonelessDate, difficulty, onSuccess, handleBadResponse, postData);
+    this.leaderSubmitError = '';
+    this.leaderboardRequest = makeLeaderboardRequest(
+        timezonelessDate,
+        this.difficulty,
+        onSuccess,
+        handleBadResponse.bind(this),
+        postData,
+    );
 }
 
 function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData) {
@@ -417,7 +344,7 @@ function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure
     const server = 'https://home.hryanjones.com';
     // const server = 'http://192.168.1.6:8080';
 
-    fetch(`${server}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`, {
+    return fetch(`${server}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`, {
         method,
         mode: 'cors',
         cache: 'no-store', // *default, no-cache, reload, force-cache, only-if-cached
@@ -438,24 +365,17 @@ function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure
         });
 }
 
-function setDisabledForLeaderboardForm(disabled = false) {
-    getElement('leaderboard-name').disabled = disabled;
-    const leaderboardSubmitButton = getElement('submit-to-leaderboard');
-    leaderboardSubmitButton.disabled = disabled;
-    leaderboardSubmitButton.value = disabled ? 'sending...' : 'submit';
-}
-
 function handleBadResponse(json) {
     const invalidReason = (json && json.invalidReason)
         || UNKNOWN_LEADERBOARD_ERROR;
-    getElement('leaderboard-validation-error').innerText = invalidReason;
-    setDisabledForLeaderboardForm(false);
-    throw new Error(invalidReason);
+    this.leaderSubmitError = invalidReason;
+    this.leaderboardRequest = null;
+    console.warn(invalidReason);
 }
 
 function normalizeLeadersAndAddAwards(leadersByName) {
     const leaders = [];
-    
+
     const fastest = { time: Infinity, names: [] };
     const fewestGuesses = { numberOfGuesses: Infinity, names: [] };
     const first = { submitTime: 'ZZZZ', names: [] }; // submitTime is ISO string
@@ -476,7 +396,7 @@ function normalizeLeadersAndAddAwards(leadersByName) {
     addAwards(fewestGuesses.names, leadersByName, '🏆 fewest guesses');
     addAwards(first.names, leadersByName, '🏅 first guesser');
 
-    leaders.forEach(leader => {
+    leaders.forEach((leader) => {
         leader.awards = leader.awards.join(', ');
     });
     return leaders;
@@ -492,7 +412,7 @@ function recordAwards(leader, tracker, key) {
 }
 
 function addAwards(names, leadersByName, award) {
-    names.forEach(name => {
+    names.forEach((name) => {
         leadersByName[name].awards.push(award);
     });
 }

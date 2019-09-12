@@ -25,6 +25,9 @@ header {
 [v-cloak] {
     display: none;
 }
+#difficulty-changer[v-cloak] {
+    visibility: hidden;
+}
 
 
 .bigger-target,
@@ -101,11 +104,11 @@ form {
 .guess-number {
     color: #999;
 }
-.guess-number {
-    display: none; /* bring back if want */
-}
 .initially-hidden {
     visibility: hidden;
+}
+.hidden {
+    display: none;
 }
 
 .current-guess {
@@ -130,14 +133,6 @@ form {
     font-size: 80%;
 }
 
-.aww,
-.yeah {
-    display: none;
-}
-.show-win .yeah,
-.gave-up .aww {
-    display: block;
-}
 .show-win #submit-guess,
 .show-win #give-up,
 .gave-up #submit-guess,
@@ -155,31 +150,12 @@ form {
     text-decoration: underline;
 }
 
-.try-hard {
-    display: none;
-}
-.show-win.difficulty-normal .try-hard {
-    display: block;
-}
-
-.try-normal {
-    display: none;
-}
-.gave-up.difficulty-hard .try-normal {
-    display: block;
-}
-
 /* LEADERBOARD */
 
 .leaderboard-form label {
     font-size: 80%;
 }
 
-.show-win.awfully-lucky .yeah.leaderboard-form {
-    display: none; /* don't offer leaderboard form if they got it in one guess */
-}
- 
-#leaderboard-validation-error,
 .error {
     color: #c50000;
     font-style: italic;
@@ -198,18 +174,10 @@ form {
 .leaderboard h2::after {
     font-style: italic;
 }
-.difficulty-hard .leaderboard h2::after {
-    content: 'hard word';
-}
-.difficulty-normal .leaderboard h2::after {
-    content: 'normal word';
-}
 
 .show-leaderboard .leaderboard {
     display: table;
 }
-.show-leaderboard #after-guesses-container,
-.show-leaderboard #before-guesses-container,
 .show-leaderboard .leaderboard-form,
 .show-leaderboard .fixed-width-label {
     display: none
