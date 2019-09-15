@@ -100,7 +100,7 @@
 
             <form
                 class="leaderboard-form"
-                v-if="winTime && guesses.length > 2"
+                v-if="winTime && guesses.length > 2 && !isReplay"
                 v-on:submit.prevent="submitToLeaderboard"
                 v-cloak
             >
@@ -127,6 +127,13 @@
                     {{leaderSubmitError}}
                 </div>
             </form>
+
+            <h4 v-if="winTime">
+                come back tomorrow for a new word
+                <span v-if="difficulty === 'normal'">or
+                    <a href="#" v-on:click="toggleDifficulty">try a hard word</a>?
+                </span>
+            </h4>
 
             <h4 v-if="gaveUpTime">
                 better luck tomorrow
@@ -157,11 +164,6 @@
     </div>
 
     <div class="leaderboard" v-if="leaders && leaders.length" v-cloak>
-        come back tomorrow for a new word
-        <span v-if="difficulty === 'normal'">or
-            <a href="#" v-on:click="toggleDifficulty">try a hard word</a>?
-        </span>
-
         <h2>Completion board for "{{difficulty}}" word</h2>
 
         <table>

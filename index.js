@@ -38,10 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
             el: '#container',
             data: {
                 guesses: [],
-                difficulty: NORMAL,
+                difficulty: null,
                 startTime: null,
                 winTime: null,
                 gaveUpTime: null,
+                submitTime: null,
                 word: undefined,
                 guessValue: '',
                 guessError: '',
@@ -56,6 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     sortKey: 'numberOfGuesses',
                     direction: 'ascending',
                 },
+                isLocalStorageAvailable: null,
+                isReplay: false,
             },
             methods: {
                 reset,
@@ -85,14 +88,12 @@ function reset() {
 
     this.guessValue = '';
 
+    if (typeof isLocalStorageAvailable !== 'boolean') {
+        this.isLocalStorageAvailable = testLocalStorage();
+    }
 
+    resetStats(this);
     // reset stats
-    this.guesses = [];
-    this.afterGuesses = [];
-    this.beforeGuesses = [];
-    this.startTime = null;
-    this.winTime = null;
-    this.gaveUpTime = null;
 
     // fix leaderboard state
     this.leaders = null;
@@ -104,25 +105,145 @@ function reset() {
     });
 }
 
+const LAST_DIFFICULTY_KEY = 'lastPlayedDifficulty';
+const SAVED_GAMES_KEYS_BY_DIFFICULTY = {
+    normal: 'savedGame_normal',
+    hard: 'savedGame_hard',
+};
+
+function resetStats(app) {
+    if (!app.isLocalStorageAvailable) {
+        setEmptyStats(app);
+        return;
+    }
+    const lastPlayedDifficulty = localStorage.getItem(LAST_DIFFICULTY_KEY);
+    const currentDifficulty = app.difficulty;
+    const difficulty = currentDifficulty || lastPlayedDifficulty;
+    const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
+    const savedGameJSON = difficulty && 
+        localStorage.getItem(savedGameKey);
+    let savedGame;
+    try {
+        savedGame = savedGameJSON && JSON.parse(savedGameJSON);
+    } catch (e) {
+        localStorage.removeItem(savedGameKey);
+    }
+    setStatsFromExistingGame(app, savedGame, difficulty);
+}
+
+function setEmptyStats(app, difficulty) {
+    app.difficulty = difficulty || app.difficulty || NORMAL;
+    app.guesses = [];
+    app.afterGuesses = [];
+    app.beforeGuesses = [];
+    app.startTime = null;
+    app.winTime = null;
+    app.gaveUpTime = null;
+    app.submitTime = null;
+    app.isReplay = false;
+}
+
+function setStatsFromExistingGame(app, savedGame, difficulty) {
+    if (!savedGame || !savedGame.startTime) {
+        setEmptyStats(app);
+        return;
+    }
+    const startTime = new Date(savedGame.startTime);
+    if (getDOY(startTime) !== getDOY(new Date())) {
+        localStorage.removeItem(SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty]);
+        localStorage.removeItem(LAST_DIFFICULTY_KEY);
+        setEmptyStats(app, difficulty);
+        return;
+    }
+    const { winTime, gaveUpTime, submitTime, guesses } = savedGame;
+    app.difficulty = difficulty;
+    app.startTime = startTime;
+    app.winTime = winTime && new Date(winTime) || null;
+    app.gaveUpTime = gaveUpTime && new Date(gaveUpTime) || null;
+    app.submitTime = submitTime && new Date(submitTime) || null;
+    app.guesses = guesses || [];
+    app.word = getWord(startTime, difficulty);
+    app.beforeGuesses = generateGuessList(BEFORE, guesses, app.word);
+    app.afterGuesses = generateGuessList(AFTER, guesses, app.word);
+    if (app.submitTime || app.gaveUpTime) {
+        app.isReplay = true;
+        app.guessValue = app.word;
+    } else {
+        app.isReplay = false;
+    }
+}
+
+function generateGuessList(beforeOrAfter, guesses, word) {
+    const guessList = [];
+    guesses
+        .filter(getBeforeOrAfterGuesses)
+        .forEach((guess) => {
+            insertIntoSortedArray(guessList, guess);
+        });
+    return guessList;
+
+    function getBeforeOrAfterGuesses(guess) {
+        if (beforeOrAfter === BEFORE) {
+            return guess > word;
+        }
+        return guess < word;
+    }
+}
+
+function testLocalStorage() {
+    // stolen from https://stackoverflow.com/questions/16427636/check-if-localstorage-is-available
+    const test = 'test';
+    try {
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 function setWordAndDate() {
     this.startTime = new Date();
+    saveGame(this);
 
     // Note: We don't want to set the word until the user starts playing as then 
     // it'd be possible for their start date and the expected word on that date 
     // not to match (and the eventual backend will verify this)
-    const dayOfYear = getDOY(this.startTime);
+    this.word = getWord(this.startTime, this.difficulty);
+}
 
+function getWord(date, difficulty) {
+    const dayOfYear = getDOY(date);
     // FIXME need to fix this so it works into next year.
     const index = dayOfYear - 114;
-    this.word = possibleWords[this.difficulty][index];
+    return possibleWords[difficulty][index];
+}
+
+function saveGame({
+    isLocalStorageAvailable,
+    difficulty,
+    startTime,
+    winTime,
+    gaveUpTime,
+    submitTime,
+    guesses,
+}) {
+    if (!isLocalStorageAvailable) {
+        return;
+    }
+    const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
+    localStorage.setItem(LAST_DIFFICULTY_KEY, difficulty);
+    localStorage.setItem(savedGameKey, JSON.stringify({
+        startTime,
+        winTime,
+        gaveUpTime,
+        submitTime,
+        guesses,
+    }));
 }
 
 function getInput() {
     return getElement('new-guess');
-}
-
-function getContainer() {
-    return getElement('container');
 }
 
 function setGuess(event) {
@@ -149,8 +270,10 @@ function makeGuess() {
     const comparison = this.getComparisonToTargetWord(guess);
     if (comparison === WIN) {
         this.winTime = new Date();
+        saveGame(this);
         return;
     }
+    saveGame(this);
     this.guessValue = ''; // clear input to get ready for next guess
 
     this.recordGuess(guess, comparison);
@@ -233,6 +356,7 @@ function giveUp() {
     }
     this.guessValue = this.word;
     this.gaveUpTime = new Date();
+    saveGame(this);
 }
 
 const OTHER_DIFFICULTY = {
@@ -247,12 +371,14 @@ function toggleDifficulty() {
         this.difficulty = NORMAL;
         return;
     }
-    if (haveMadeGuesses && !haveWonOrGivenUp && !confirm('Change difficulty and lose current guesses?')) {
+    if (haveMadeGuesses && !haveWonOrGivenUp && !this.isLocalStorageAvailable
+        && !confirm('Change difficulty and lose current guesses?')) {
         this.$forceUpdate(); // need to make sure the changer dropdown is in the correct state
         return;
     }
     this.difficulty = OTHER_DIFFICULTY[this.difficulty] || NORMAL;
     this.reset();
+    saveGame(this);
 }
 
 // Utilities
@@ -311,6 +437,7 @@ function submitToLeaderboard(event) {
         guesses: this.guesses,
     };
     const timezonelessDate = getTimezonelessLocalDate(this.startTime);
+    const submitTime = new Date();
 
     const onSuccess = (json) => {
         const { sortKey, direction } = this.sortConfig;
@@ -319,6 +446,8 @@ function submitToLeaderboard(event) {
             sortKey,
             direction,
         );
+        this.submitTime = submitTime;
+        saveGame(this);
     };
     this.leaderSubmitError = '';
     this.leaderboardRequest = makeLeaderboardRequest(
