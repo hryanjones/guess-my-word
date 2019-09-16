@@ -28,6 +28,12 @@ header {
 #difficulty-changer[v-cloak] {
     visibility: hidden;
 }
+#difficulty-changer.normal {
+    border-bottom: 3px solid royalblue;
+}
+#difficulty-changer.hard {
+    border-bottom: 3px solid crimson;
+}
 
 
 .bigger-target,

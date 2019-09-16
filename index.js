@@ -48,6 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 guessError: '',
                 afterGuesses: [],
                 beforeGuesses: [],
+                username: '',
+                usernamesUsed: [],
+                isLocalStorageAvailable: null,
+                isReplay: false,
+
                 LEADER_HEADER_FIELDS,
                 leaders: null,
                 leaderboardRequest: null,
@@ -57,8 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     sortKey: 'numberOfGuesses',
                     direction: 'ascending',
                 },
-                isLocalStorageAvailable: null,
-                isReplay: false,
             },
             methods: {
                 reset,
@@ -73,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggleDifficulty,
                 submitToLeaderboard,
                 changeLeaderSort,
+                setUsername(event) {
+                    this.username = event.target.value;
+                },
             },
         });
     }
@@ -93,6 +99,7 @@ function reset() {
     }
 
     resetStats(this);
+    loadStoredUserNames(this);
     // reset stats
 
     // fix leaderboard state
@@ -110,6 +117,7 @@ const SAVED_GAMES_KEYS_BY_DIFFICULTY = {
     normal: 'savedGame_normal',
     hard: 'savedGame_hard',
 };
+const USERNAMES_USED_KEY = 'usernamesUsed';
 
 function resetStats(app) {
     if (!app.isLocalStorageAvailable) {
@@ -199,6 +207,21 @@ function testLocalStorage() {
         return true;
     } catch (e) {
         return false;
+    }
+}
+
+function loadStoredUserNames(app) {
+    if (!app.isLocalStorageAvailable || app.usernamesUsed.length > 0) return;
+    const usernamesJSON = localStorage.getItem(USERNAMES_USED_KEY);
+    let usernames = [];
+    try {
+        usernames = usernamesJSON && JSON.parse(usernamesJSON) || [];
+    } finally {
+        app.usernamesUsed = usernames || [];
+        const lastUsedName = app.usernamesUsed[0];
+        if (lastUsedName && !app.username) {
+            app.username = lastUsedName;
+        }
     }
 }
 
@@ -429,8 +452,8 @@ function getDOY(date) {
 
 // LEADERBOARD
 
-function submitToLeaderboard(event) {
-    const name = event.target[0].value;
+function submitToLeaderboard() {
+    const name = this.username;
     const postData = {
         name,
         time: this.winTime - this.startTime,
@@ -448,6 +471,7 @@ function submitToLeaderboard(event) {
         );
         this.submitTime = submitTime;
         saveGame(this);
+        saveUserName(this, name);
     };
     this.leaderSubmitError = '';
     this.leaderboardRequest = makeLeaderboardRequest(
@@ -544,6 +568,18 @@ function addAwards(names, leadersByName, award) {
     names.forEach((name) => {
         leadersByName[name].awards.push(award);
     });
+}
+
+function saveUserName(app, name) {
+    app.usernamesUsed = unshiftUniqueValue(app.usernamesUsed, name);
+    localStorage.setItem(USERNAMES_USED_KEY, JSON.stringify(app.usernamesUsed));
+}
+
+function unshiftUniqueValue(arrayOfUniqueValues, newValue) {
+    return [newValue].concat(
+        arrayOfUniqueValues
+            .filter(value => value !== newValue)
+    );
 }
 
 const OPPOSITE_SORT_DIRECTION = {

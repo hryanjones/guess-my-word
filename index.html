@@ -23,6 +23,7 @@
             id="difficulty-changer"
             v-on:change="toggleDifficulty"
             v-bind:value="difficulty"
+            v-bind:class="difficulty"
             v-cloak
         >
             <option value="normal">normal</option>
@@ -113,10 +114,17 @@
                         minlength="1"
                         maxlength="128"
                         type="text"
+                        list="usernames"
                         v-bind:disabled="leaderboardRequest"
+                        v-bind:value="username"
+                        v-on:input="setUsername"
                         v-focus
                     />
                 </label>
+                <datalist id="usernames">
+                    <option v-for="name in usernamesUsed" v-bind:value="name">
+                    </option>
+                </datalist>
                 <input
                     id="submit-to-leaderboard"
                     type="submit"
