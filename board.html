@@ -12,7 +12,11 @@
 <header>
     <h1>
         <a href="./" class="home">Guess my word</a>
-        <select id="difficulty-changer" v-on:change="setDifficulty">
+        <select
+            id="difficulty-changer"
+            v-on:change="setDifficulty"
+            v-bind:class="difficulty"
+        >
             <option value="normal">normal</option>
             <option value="hard">hard</option>
         </select>
