@@ -56,12 +56,13 @@ a:active {
 
 h1 {
     white-space: nowrap;
+    margin-top: 0px;
 }
 
 #container {
     display: flex;
     flex-direction: column;
-    margin-top: 24px; /* add some space between guesses and instructions */
+    margin-bottom: 300px; /* put some space at the bottom to make it easier to scroll, esp. on mobile when keyboard is visible*/
 }
 #after-guesses-container,
 #before-guesses-container,

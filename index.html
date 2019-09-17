@@ -35,7 +35,7 @@
     <a class="bigger-target" href="./README.html">about</a>
 </header>
 
-<p>
+<p style="margin-bottom: 24px">
     I'm thinking of an English word. Make guesses below and I'll tell you if my word is alphabetically before or after your
     guess.
 </p>
@@ -121,7 +121,7 @@
                         v-focus
                     />
                 </label>
-                <datalist id="usernames">
+                <datalist id="usernames" v-if="usernamesUsed.length > 1">
                     <option v-for="name in usernamesUsed" v-bind:value="name">
                     </option>
                 </datalist>
