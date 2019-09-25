@@ -101,7 +101,7 @@
 
             <form
                 class="leaderboard-form"
-                v-if="winTime && guesses.length > 2 && !isReplay"
+                v-if="winTime && guesses.length > 0 && !isReplay"
                 v-on:submit.prevent="submitToLeaderboard"
                 v-cloak
             >
@@ -177,7 +177,7 @@
         <table>
         <thead>
             <tr>
-                <th v-for="field in LEADER_HEADER_FIELDS" v-on:click="changeLeaderSort(field.key, field.sortKey)">
+                <th v-for="field in LEADER_HEADER_FIELDS_BY_TYPE.normal" v-on:click="changeLeaderSort(field.key, field.sortKey)">
                     <div class="leader-table-header-cell">
                         <div>{{field.text}}</div>
                         <div v-if="sortConfig.key === field.key" style="margin-left: 5px;">
@@ -189,7 +189,7 @@
         </thead>
             <tbody id="leaderboard">
                 <tr v-for="leader in leaders">
-                    <td v-for="field in LEADER_HEADER_FIELDS">
+                    <td v-for="field in LEADER_HEADER_FIELDS_BY_TYPE.normal">
                         {{leader[field.key]}}
                     </td>
                 </tr>

@@ -19,12 +19,31 @@ let vueApp;
 
 const UNKNOWN_LEADERBOARD_ERROR = "Sorry, can't contact the leaderboard right now. Please try again in a little bit. (please contact @hryanjones if it persists)";
 
-const LEADER_HEADER_FIELDS = [
-    { text: 'name', key: 'name', sortKey: 'name' },
-    { text: '# guesses', key: 'numberOfGuesses', sortKey: 'numberOfGuesses' },
-    { text: 'time', key: 'formattedTime', sortKey: 'time' },
-    { text: 'awards', key: 'awards', sortKey: 'awards' },
-];
+const FORMATTED_TIME_KEYS = {
+    time: 'formattedTime',
+    bestTime: 'formattedBestTime',
+    timeMedian: 'formattedTimeMedian',
+};
+
+const LEADER_HEADER_FIELDS_BY_TYPE = { // eslint-disable-line no-unused-vars
+    normal: [
+        { text: 'name', key: 'name', sortKey: 'name' },
+        { text: '# guesses', key: 'numberOfGuesses', sortKey: 'numberOfGuesses' },
+        { text: 'time', key: FORMATTED_TIME_KEYS.time, sortKey: 'time' },
+        { text: 'awards', key: 'awards', sortKey: 'awards' },
+    ],
+    allTime: [
+        { text: 'name', key: 'name', sortKey: 'name' },
+        { text: 'weekly play rate', key: 'weeklyPlayRate', sortKey: 'weeklyPlayRate' },
+        { text: '# plays', key: 'playCount', sortKey: 'playCount' },
+        { text: 'best time', key: FORMATTED_TIME_KEYS.bestTime, sortKey: 'bestTime' },
+        { text: 'median time', key: FORMATTED_TIME_KEYS.timeMedian, sortKey: 'timeMedian' },
+        { text: 'best # guesses', key: 'bestNumberOfGuesses', sortKey: 'bestNumberOfGuesses' },
+        { text: 'median # guesses', key: 'numberOfGuessesMedian', sortKey: 'numberOfGuessesMedian' },
+        { text: 'first play date date', key: 'firstSubmitDate', sortKey: 'firstSubmitDate' },
+        { text: 'awards', key: 'awards', sortKey: 'awards' },
+    ],
+};
 
 Vue.directive('focus', {
     inserted: (el) => {
@@ -53,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isLocalStorageAvailable: null,
                 isReplay: false,
 
-                LEADER_HEADER_FIELDS,
+                leadersType: 'normal',
                 leaders: null,
                 leaderboardRequest: null,
                 leaderSubmitError: '',
@@ -128,8 +147,7 @@ function resetStats(app) {
     const currentDifficulty = app.difficulty;
     const difficulty = currentDifficulty || lastPlayedDifficulty;
     const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
-    const savedGameJSON = difficulty && 
-        localStorage.getItem(savedGameKey);
+    const savedGameJSON = difficulty && localStorage.getItem(savedGameKey);
     let savedGame;
     try {
         savedGame = savedGameJSON && JSON.parse(savedGameJSON);
@@ -163,12 +181,17 @@ function setStatsFromExistingGame(app, savedGame, difficulty) {
         setEmptyStats(app, difficulty);
         return;
     }
-    const { winTime, gaveUpTime, submitTime, guesses } = savedGame;
+    const {
+        winTime,
+        gaveUpTime,
+        submitTime,
+        guesses,
+    } = savedGame;
     app.difficulty = difficulty;
     app.startTime = startTime;
-    app.winTime = winTime && new Date(winTime) || null;
-    app.gaveUpTime = gaveUpTime && new Date(gaveUpTime) || null;
-    app.submitTime = submitTime && new Date(submitTime) || null;
+    app.winTime = (winTime && new Date(winTime)) || null;
+    app.gaveUpTime = (gaveUpTime && new Date(gaveUpTime)) || null;
+    app.submitTime = (submitTime && new Date(submitTime)) || null;
     app.guesses = guesses || [];
     app.word = getWord(startTime, difficulty);
     app.beforeGuesses = generateGuessList(BEFORE, guesses, app.word);
@@ -215,7 +238,7 @@ function loadStoredUserNames(app) {
     const usernamesJSON = localStorage.getItem(USERNAMES_USED_KEY);
     let usernames = [];
     try {
-        usernames = usernamesJSON && JSON.parse(usernamesJSON) || [];
+        usernames = (usernamesJSON && JSON.parse(usernamesJSON)) || [];
     } finally {
         app.usernamesUsed = usernames || [];
         const lastUsedName = app.usernamesUsed[0];
@@ -465,7 +488,7 @@ function submitToLeaderboard() {
     const onSuccess = (json) => {
         const { sortKey, direction } = this.sortConfig;
         this.leaders = sortLeaders(
-            normalizeLeadersAndAddAwards(json),
+            normalizeLeadersAndAddAwards(json, this.leadersType),
             sortKey,
             direction,
         );
@@ -523,31 +546,27 @@ function handleBadResponse(json) {
         || UNKNOWN_LEADERBOARD_ERROR;
     this.leaderSubmitError = invalidReason;
     this.leaderboardRequest = null;
-    console.warn(invalidReason);
+    console.warn(invalidReason); // eslint-disable-line no-console
 }
 
-function normalizeLeadersAndAddAwards(leadersByName) {
+function normalizeLeadersAndAddAwards(leadersByName, type) {
     const leaders = [];
 
-    const fastest = { time: Infinity, names: [] };
-    const fewestGuesses = { numberOfGuesses: Infinity, names: [] };
-    const first = { submitTime: 'ZZZZ', names: [] }; // submitTime is ISO string
+    const awardTrackers = getNewAwardTrackers(type);
 
     for (const name in leadersByName) {
-        const leader = leadersByName[name];
-        leader.name = name; // warning mutating inputs here, don't care YOLO
-        leader.formattedTime = getFormattedTime(leader.time);
-        leader.awards = [];
+        const leader = prepareLeaderForBoard(name, leadersByName);
+
         leaders.push(leader);
 
-        recordAwards(leader, fastest, 'time');
-        recordAwards(leader, fewestGuesses, 'numberOfGuesses');
-        recordAwards(leader, first, 'submitTime');
+        awardTrackers.forEach((tracker) => {
+            recordAwards(leader, tracker);
+        });
     }
 
-    addAwards(fastest.names, leadersByName, '🏆 fastest');
-    addAwards(fewestGuesses.names, leadersByName, '🏆 fewest guesses');
-    addAwards(first.names, leadersByName, '🏅 first guesser');
+    awardTrackers.forEach((tracker) => {
+        addAwards(tracker, leadersByName);
+    });
 
     leaders.forEach((leader) => {
         leader.awards = leader.awards.join(', ');
@@ -555,16 +574,107 @@ function normalizeLeadersAndAddAwards(leadersByName) {
     return leaders;
 }
 
-function recordAwards(leader, tracker, key) {
-    if (leader[key] < tracker[key]) {
-        tracker[key] = leader[key];
+function getNewAwardTrackers(type) {
+    if (type !== 'allTime') {
+        return [
+            {
+                value: Infinity,
+                key: 'time',
+                names: [],
+                award: '🏆 fastest',
+            },
+            {
+                value: Infinity,
+                key: 'numberOfGuesses',
+                names: [],
+                award: '🏆 fewest guesses',
+            },
+            {
+                value: 'ZZZZ', // submitTime is ISO string
+                key: 'submitTime',
+                names: [],
+                award: '🏅 first guesser',
+            },
+        ];
+    }
+    return [
+        {
+            value: 0,
+            key: 'weeklyPlayRate',
+            names: [],
+            award: '🏆👏 highest weekly rate',
+            reverse: true,
+        },
+        {
+            value: Infinity,
+            key: 'timeMedian',
+            names: [],
+            award: '🏆👏 fastest median',
+        },
+        {
+            value: Infinity,
+            key: 'numberOfGuessesMedian',
+            names: [],
+            award: '🏆👏 fewest median guesses',
+        },
+        {
+            value: Infinity,
+            key: 'bestTime',
+            names: [],
+            award: '🏆 fastest',
+        },
+        {
+            value: Infinity,
+            key: 'bestNumberOfGuesses',
+            names: [],
+            award: '🏆 fewest guesses',
+        },
+        {
+            value: 0,
+            key: 'playCount',
+            names: [],
+            award: '🏅 most plays',
+            reverse: true,
+        },
+    ];
+}
+
+function prepareLeaderForBoard(name, leadersByName) {
+    const leader = leadersByName[name];
+    // warning mutating inputs here, don't care YOLO
+    leader.name = name;
+    Object.keys(FORMATTED_TIME_KEYS).forEach((key) => {
+        const timeValue = leader[key];
+        if (timeValue) {
+            const formattedKey = FORMATTED_TIME_KEYS[key];
+            leader[formattedKey] = getFormattedTime(timeValue);
+        }
+    });
+    if (leader.weeklyPlayRate) {
+        leader.weeklyPlayRate = leader.weeklyPlayRate.toFixed(2);
+    }
+    if (leader.firstSubmitDate) {
+        leader.firstSubmitDate = leader.firstSubmitDate.replace(/T.*/, ''); // remove time portion
+    }
+    leader.awards = [];
+    return leader;
+}
+
+function recordAwards(leader, tracker) {
+    const { key, value, reverse } = tracker;
+    const leaderValue = leader[key];
+    const isLeaderValueBetter = reverse
+        ? leaderValue > value
+        : leaderValue < value;
+    if (isLeaderValueBetter) {
+        tracker.value = leaderValue;
         tracker.names = [leader.name];
-    } else if (leader[key] === tracker[key]) {
+    } else if (leaderValue === value) {
         tracker.names.push(leader.name);
     }
 }
 
-function addAwards(names, leadersByName, award) {
+function addAwards({ award, names }, leadersByName) {
     names.forEach((name) => {
         leadersByName[name].awards.push(award);
     });

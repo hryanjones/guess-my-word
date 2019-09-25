@@ -25,7 +25,17 @@
 </header>
 
 <div class="leaderboard" v-cloak>
-    <h2>Completion board for "{{difficulty}}" today</h2>
+    <h2>
+        Completion board for "{{difficulty}}" 
+        <select
+            style="font-size: 0.8em;"
+            v-bind:value="leadersType"
+            v-on:change="toggleLeaderType"
+        >
+            <option value="normal">for Today</option>
+            <option value="allTime">for All time</option>
+        </select>
+    </h2>
 
     <div class="error">{{error}}</div>
 
@@ -35,7 +45,7 @@
         <thead>
             <tr>
                 <th 
-                    v-for="field in LEADER_HEADER_FIELDS"
+                    v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]"
                     v-on:click="changeLeaderSort(field.key, field.sortKey)"
                 >
                     <div class="leader-table-header-cell">
@@ -52,7 +62,7 @@
         </thead>
         <tbody id="leaderboard">
             <tr v-for="leader in leaders">
-                <td v-for="field in LEADER_HEADER_FIELDS">
+                <td v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]">
                     {{leader[field.key]}}
                 </td>
             </tr>
@@ -65,13 +75,18 @@
 <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
 <script src="index.js"></script>
 <script>
-    function getLeaders() {
-        const date = getTimezonelessLocalDate(new Date());
+    function getLeaders(type) {
+        let date;
+        if (type === 'allTime') {
+            date = 'ALL';
+        } else {
+            date = getTimezonelessLocalDate(new Date());
+        }
 
         const onSuccess = (json) => {
             const {sortKey, direction} = this.sortConfig;
             this.leaders = sortLeaders(
-                normalizeLeadersAndAddAwards(json),
+                normalizeLeadersAndAddAwards(json, this.leadersType),
                 sortKey,
                 direction
             );
@@ -89,31 +104,45 @@
         makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
     }
 
+    const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
+        normal: {
+            key: 'numberOfGuesses',
+            sortKey: 'numberOfGuesses',
+            direction: 'ascending',
+        },
+        allTime: {
+            key: 'weeklyPlayRate',
+            sortKey: 'weeklyPlayRate',
+            direction: 'descending',
+        },
+    }
+
     new Vue({
         el: '#leaderboard-container',
         data: {
-            LEADER_HEADER_FIELDS,
+            leadersType: 'normal',
             leaders: [],
             difficulty: 'normal',
             message: '',
             error: '',
-            sortConfig: {
-                key: 'numberOfGuesses',
-                sortKey: 'numberOfGuesses',
-                direction: 'ascending',
-            },
+            sortConfig: DEFAULT_SORT_CONFIG_BY_LEADER_TYPE.allTime,
         },
         created() {
-            this.getLeaders();
+            this.getLeaders(this.leadersType);
         },
         methods: {
             getLeaders,
             setDifficulty(e) {
                 const newDifficulty = e.target.value;
                 this.difficulty = newDifficulty;
-                this.getLeaders();
+                this.getLeaders(this.leadersType);
             },
             changeLeaderSort,
+            toggleLeaderType() {
+                this.leadersType = this.leadersType === 'normal' ? 'allTime' : 'normal';
+                this.sortConfig = DEFAULT_SORT_CONFIG_BY_LEADER_TYPE[this.leadersType];
+                this.getLeaders(this.leadersType)
+            }
         },
     });
 </script>

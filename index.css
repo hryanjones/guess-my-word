@@ -64,6 +64,9 @@ h1 {
     flex-direction: column;
     margin-bottom: 300px; /* put some space at the bottom to make it easier to scroll, esp. on mobile when keyboard is visible*/
 }
+#container.show-leaderboard {
+    margin-bottom: 0px;
+}
 #after-guesses-container,
 #before-guesses-container,
 #guesser 
@@ -210,9 +213,13 @@ thead, th {
 
 td {
     text-align: right;
+    white-space: nowrap;
 }
 
 td:first-child,
 td:last-child { /* name and award should be left aligned other fields, which are number should be right aligned */
     text-align: left;
+}
+td:first-child {
+    white-space: unset;
 }
