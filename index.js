@@ -40,7 +40,7 @@ const LEADER_HEADER_FIELDS_BY_TYPE = { // eslint-disable-line no-unused-vars
         { text: 'median time', key: FORMATTED_TIME_KEYS.timeMedian, sortKey: 'timeMedian' },
         { text: 'best # guesses', key: 'bestNumberOfGuesses', sortKey: 'bestNumberOfGuesses' },
         { text: 'median # guesses', key: 'numberOfGuessesMedian', sortKey: 'numberOfGuessesMedian' },
-        { text: 'first play date date', key: 'firstSubmitDate', sortKey: 'firstSubmitDate' },
+        { text: 'first play date', key: 'firstSubmitDate', sortKey: 'firstSubmitDate' },
         { text: 'awards', key: 'awards', sortKey: 'awards' },
     ],
 };
