@@ -15,6 +15,10 @@ const BEFORE = 'before';
 const AFTER = 'after';
 const HARD = 'hard';
 const NORMAL = 'normal';
+const OTHER_DIFFICULTY = {
+    [NORMAL]: HARD,
+    [HARD]: NORMAL,
+};
 let vueApp;
 
 const UNKNOWN_LEADERBOARD_ERROR = "Sorry, can't contact the leaderboard right now. Please try again in a little bit. (please contact @hryanjones if it persists)";
@@ -131,7 +135,8 @@ function reset() {
     });
 }
 
-const LAST_DIFFICULTY_KEY = 'lastPlayedDifficulty';
+const LAST_SET_DIFFICULTY_KEY = 'lastSetDifficultyToday';
+const RECENT_FIRST_PLAYED_DIFFICULTY = 'recentFirstPlayedDifficulty';
 const SAVED_GAMES_KEYS_BY_DIFFICULTY = {
     normal: 'savedGame_normal',
     hard: 'savedGame_hard',
@@ -143,17 +148,8 @@ function resetStats(app) {
         setEmptyStats(app);
         return;
     }
-    const lastPlayedDifficulty = localStorage.getItem(LAST_DIFFICULTY_KEY);
-    const currentDifficulty = app.difficulty;
-    const difficulty = currentDifficulty || lastPlayedDifficulty;
-    const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
-    const savedGameJSON = difficulty && localStorage.getItem(savedGameKey);
-    let savedGame;
-    try {
-        savedGame = savedGameJSON && JSON.parse(savedGameJSON);
-    } catch (e) {
-        localStorage.removeItem(savedGameKey);
-    }
+    const difficulty = getDifficulty(app.difficulty);
+    const savedGame = getSavedGameByDifficulty(difficulty);
     setStatsFromExistingGame(app, savedGame, difficulty);
 }
 
@@ -169,15 +165,49 @@ function setEmptyStats(app, difficulty) {
     app.isReplay = false;
 }
 
+function getDifficulty(currentDifficulty) {
+    if (currentDifficulty) return currentDifficulty;
+
+    const lastSetDifficulty = localStorage.getItem(LAST_SET_DIFFICULTY_KEY);
+    const recentFirstPlayedDifficulty = localStorage.getItem(RECENT_FIRST_PLAYED_DIFFICULTY);
+    if (!isSameDay() && recentFirstPlayedDifficulty) {
+        localStorage.removeItem(RECENT_FIRST_PLAYED_DIFFICULTY);
+        return recentFirstPlayedDifficulty;
+    }
+
+    return lastSetDifficulty || NORMAL;
+}
+
+function isSameDay() {
+    // we determine if it's the same day by looking to see if any of the
+    // saved games have the same date as today
+    return Object.keys(OTHER_DIFFICULTY).some((difficulty) => {
+        const savedGame = getSavedGameByDifficulty(difficulty);
+        if (!savedGame) return false;
+        const savedStartTime = new Date(savedGame.startTime);
+        return getDOY(savedStartTime) === getDOY(new Date());
+    });
+}
+
+function getSavedGameByDifficulty(difficulty) {
+    const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
+    const savedGameJSON = difficulty && localStorage.getItem(savedGameKey);
+    try {
+        return savedGameJSON && JSON.parse(savedGameJSON);
+    } catch (e) {
+        localStorage.removeItem(savedGameKey);
+    }
+    return undefined;
+}
+
 function setStatsFromExistingGame(app, savedGame, difficulty) {
     if (!savedGame || !savedGame.startTime) {
-        setEmptyStats(app);
+        setEmptyStats(app, difficulty);
         return;
     }
     const startTime = new Date(savedGame.startTime);
     if (getDOY(startTime) !== getDOY(new Date())) {
-        localStorage.removeItem(SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty]);
-        localStorage.removeItem(LAST_DIFFICULTY_KEY);
+        resetSavedGames();
         setEmptyStats(app, difficulty);
         return;
     }
@@ -202,6 +232,12 @@ function setStatsFromExistingGame(app, savedGame, difficulty) {
     } else {
         app.isReplay = false;
     }
+}
+
+function resetSavedGames() {
+    Object.keys(OTHER_DIFFICULTY).forEach((difficulty) => {
+        localStorage.removeItem(SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty]);
+    });
 }
 
 function generateGuessList(beforeOrAfter, guesses, word) {
@@ -265,6 +301,13 @@ function getWord(date, difficulty) {
     return possibleWords[difficulty][index];
 }
 
+function saveLastSetDifficulty({ isLocalStorageAvailable, difficulty }) {
+    if (!isLocalStorageAvailable) {
+        return;
+    }
+    localStorage.setItem(LAST_SET_DIFFICULTY_KEY, difficulty);
+}
+
 function saveGame({
     isLocalStorageAvailable,
     difficulty,
@@ -277,8 +320,10 @@ function saveGame({
     if (!isLocalStorageAvailable) {
         return;
     }
+    if (!localStorage.getItem(RECENT_FIRST_PLAYED_DIFFICULTY)) {
+        localStorage.setItem(RECENT_FIRST_PLAYED_DIFFICULTY, difficulty);
+    }
     const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
-    localStorage.setItem(LAST_DIFFICULTY_KEY, difficulty);
     localStorage.setItem(savedGameKey, JSON.stringify({
         startTime,
         winTime,
@@ -405,11 +450,6 @@ function giveUp() {
     saveGame(this);
 }
 
-const OTHER_DIFFICULTY = {
-    [NORMAL]: HARD,
-    [HARD]: NORMAL,
-};
-
 function toggleDifficulty() {
     const haveMadeGuesses = this.guesses.length > 0;
     const haveWonOrGivenUp = this.winTime || this.gaveUpTime;
@@ -424,7 +464,7 @@ function toggleDifficulty() {
     }
     this.difficulty = OTHER_DIFFICULTY[this.difficulty] || NORMAL;
     this.reset();
-    saveGame(this);
+    saveLastSetDifficulty(this);
 }
 
 // Utilities
