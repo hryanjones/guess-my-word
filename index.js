@@ -559,6 +559,8 @@ function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure
 
     const server = 'https://home.hryanjones.com';
     // const server = 'http://192.168.1.6:8080';
+    // const server = 'https://hryanjones.builtwithdark.com';
+
 
     return fetch(`${server}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`, {
         method,
