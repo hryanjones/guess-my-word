@@ -101,7 +101,7 @@
 
             <form
                 class="leaderboard-form"
-                v-if="winTime && guesses.length > 0 && !isReplay"
+                v-if="winTime && guesses.length > 1 && !isReplay"
                 v-on:submit.prevent="submitToLeaderboard"
                 v-cloak
             >
