@@ -295,10 +295,17 @@ function setWordAndDate() {
 }
 
 function getWord(date, difficulty) {
-    const dayOfYear = getDOY(date);
+    const dayOfYear = getWordIndex(date) 
     // FIXME need to fix this so it works into next year.
     const index = dayOfYear - 114;
     return possibleWords[difficulty][index];
+}
+
+function getWordIndex(date) {
+    const doy = getDOY(date);
+    const yearOffset = (date.getFullYear() - 2019) * 365;
+    // FIXME deal with leap years?
+    return doy + yearOffset;
 }
 
 function saveLastSetDifficulty({ isLocalStorageAvailable, difficulty }) {
