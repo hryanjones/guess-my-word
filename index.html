@@ -189,7 +189,10 @@
         </thead>
             <tbody id="leaderboard">
                 <tr v-for="leader in leaders">
-                    <td v-for="field in LEADER_HEADER_FIELDS_BY_TYPE.normal">
+                    <td
+                        v-for="field in LEADER_HEADER_FIELDS_BY_TYPE.normal"
+                        v-bind:title="leader[field.key]"
+                    >
                         {{leader[field.key]}}
                     </td>
                 </tr>

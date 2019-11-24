@@ -180,6 +180,10 @@ form {
     border-collapse: separate;
     border-spacing: 15px 5px
 }
+.leaderboard table td {
+    max-width: 200px;
+    overflow: hidden;
+}
 
 .leaderboard h2::after {
     font-style: italic;

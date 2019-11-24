@@ -29,6 +29,8 @@ const FORMATTED_TIME_KEYS = {
     timeMedian: 'formattedTimeMedian',
 };
 
+const LUCKY_BUGGER_GUESS_COUNT_THRESHOLD = 3;
+
 const LEADER_HEADER_FIELDS_BY_TYPE = { // eslint-disable-line no-unused-vars
     normal: [
         { text: 'name', key: 'name', sortKey: 'name' },
@@ -602,16 +604,25 @@ function normalizeLeadersAndAddAwards(leadersByName, type) {
     const leaders = [];
 
     const awardTrackers = getNewAwardTrackers(type);
+    const luckyTracker = {
+        names: [],
+        award: '🍀 lucky?',
+    };
 
     for (const name in leadersByName) {
         const leader = prepareLeaderForBoard(name, leadersByName);
 
         leaders.push(leader);
 
+        if (leader.numberOfGuesses <= LUCKY_BUGGER_GUESS_COUNT_THRESHOLD) {
+            luckyTracker.names.push(leader.name);
+            continue; // eslint-disable-line
+        }
         awardTrackers.forEach((tracker) => {
             recordAwards(leader, tracker);
         });
     }
+    awardTrackers.push(luckyTracker);
 
     awardTrackers.forEach((tracker) => {
         addAwards(tracker, leadersByName);
@@ -774,7 +785,8 @@ function sortArrayByKey(array, key, direction) {
     const sorter = direction === 'descending' ? sortByKeyDesc : sortByKeyAsc;
     const arrayCopy = array.slice(0);
     const secondaryKey = SECONDARY_SORT_KEY_BY_PRIMARY_SORT_KEY[key];
-    return arrayCopy.sort((first, second) => sorter(first, second, key, secondaryKey));
+    const bareSorted = arrayCopy.sort((first, second) => sorter(first, second, key, secondaryKey));
+    return putLuckyBuggersAtTheBottom(bareSorted);
 }
 
 function sortByKeyAsc(first, second, key, secondaryKey) {
@@ -794,4 +806,15 @@ function sortByKeyAsc(first, second, key, secondaryKey) {
 
 function sortByKeyDesc(first, second, key, secondaryKey) {
     return -1 * sortByKeyAsc(first, second, key, secondaryKey);
+}
+
+function putLuckyBuggersAtTheBottom(array) {
+    if (!array[0] || !array[0].numberOfGuesses) {
+        return array;
+    }
+    const luckyBuggers = array
+        .filter(record => record.numberOfGuesses <= LUCKY_BUGGER_GUESS_COUNT_THRESHOLD);
+    return array
+        .filter(record => record.numberOfGuesses > LUCKY_BUGGER_GUESS_COUNT_THRESHOLD)
+        .concat(luckyBuggers);
 }
