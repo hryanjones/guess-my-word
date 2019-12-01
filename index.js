@@ -30,6 +30,7 @@ const FORMATTED_TIME_KEYS = {
 };
 
 const LUCKY_BUGGER_GUESS_COUNT_THRESHOLD = 3;
+const THAT_GUY_NAME = 'THAT GUY 🤦‍♀️'; // name that signifies a user is using an inappropriate username
 
 const LEADER_HEADER_FIELDS_BY_TYPE = { // eslint-disable-line no-unused-vars
     normal: [
@@ -297,7 +298,7 @@ function setWordAndDate() {
 }
 
 function getWord(date, difficulty) {
-    const dayOfYear = getWordIndex(date) 
+    const dayOfYear = getWordIndex(date);
     // FIXME need to fix this so it works into next year.
     const index = dayOfYear - 114;
     return possibleWords[difficulty][index];
@@ -567,7 +568,7 @@ function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure
     }
 
     const server = 'https://home.hryanjones.com';
-    // const server = 'http://192.168.1.6:8080';
+    // const server = 'http://192.168.0.144:8080';
     // const server = 'https://hryanjones.builtwithdark.com';
 
 
@@ -721,6 +722,7 @@ function prepareLeaderForBoard(name, leadersByName) {
 }
 
 function recordAwards(leader, tracker) {
+    if (leader.name === THAT_GUY_NAME) return;
     const { key, value, reverse } = tracker;
     const leaderValue = leader[key];
     const isLeaderValueBetter = reverse
@@ -748,7 +750,7 @@ function saveUserName(app, name) {
 function unshiftUniqueValue(arrayOfUniqueValues, newValue) {
     return [newValue].concat(
         arrayOfUniqueValues
-            .filter(value => value !== newValue)
+            .filter(value => value !== newValue),
     );
 }
 
