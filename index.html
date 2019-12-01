@@ -16,8 +16,11 @@
 >
 
 <header>
-    <h1>
-        <a href="./" class="home">Guess my word</a>
+    <div class="controls">
+        <h1>
+            <a href="./" class="home">Guess my word</a>
+        </h1>
+
         <select 
             id="difficulty-changer"
             v-on:change="toggleDifficulty"
@@ -28,10 +31,27 @@
             <option value="normal">normal</option>
             <option value="hard">hard</option>
         </select>
-    </h1>
+        
+        <button v-on:click="toggleShowDate" v-cloak>📅</button>
 
-    <a class="bigger-target" href="./board.html">🏆 Board</a>
-    <a class="bigger-target" href="./README.html">about</a>
+        <div class="date-picker" v-cloak v-if="showDatePicker">
+            <button v-on:click="backMonth">&lt;&lt;&lt;</button><button v-on:click="backWeek">&lt;&lt;</button><button
+                v-on:click="backDay">&lt;</button>
+            <div class="display" v-bind:class="{
+                    'centered': ['Today', 'First day 🎂'].includes(getShortDayString()),
+                }">
+                {{getShortDayString()}}
+            </div>
+            <button v-on:click="forwardDay">&gt;</button><button v-on:click="forwardWeek">&gt;&gt;</button><button
+                v-on:click="forwardMonth">&gt;&gt;&gt;</button>
+            {{getWordIndex(playDate)}}
+        </div>
+    </div>
+
+    <nav>
+        <a class="bigger-target" href="./board.html">🏆 Board</a>
+        <a class="bigger-target" href="./README.html">about</a>
+    </nav>
 </header>
 
 <p style="margin-bottom: 24px">

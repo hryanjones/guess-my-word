@@ -6,20 +6,34 @@ body {
 h1 {
     margin-bottom: 0px; /* add padding to header instead so "about" also gets it */
 }
-header {
-    margin-bottom: 21px;
-}
 h1 .home {
     color: #000;
 }
 small {
     font-size: 50%;
 }
+button, select, option, input[type="submit"] {
+    cursor: pointer;
+}
 header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+header .controls {
+    display: flex;
     align-items: baseline;
     flex-wrap: wrap;
+}
+header .controls > * {
+    margin-right: 8px;
+}
+nav {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    flex-grow: 1; /* so still shows up on the right*/
 }
 
 [v-cloak] {
@@ -220,4 +234,23 @@ td:last-child { /* name and award should be left aligned other fields, which are
 }
 td:first-child {
     white-space: unset;
+}
+
+.date-picker {
+    white-space: nowrap;
+}
+.date-picker .display {
+    width: 140px;
+    text-align: right;
+    padding-right: 10px;
+    display: inline-block;
+}
+.date-picker .display.centered {
+    text-align: center;
+}
+
+.date-picker button {
+    padding-left: 2px;
+    padding-right: 2px;
+    margin: 0;
 }

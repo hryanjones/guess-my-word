@@ -88,6 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     sortKey: 'numberOfGuesses',
                     direction: 'ascending',
                 },
+
+                // Date picker state
+                showDatePicker: false,
+                playDate: new Date(),
             },
             methods: {
                 reset,
@@ -96,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 makeGuess,
                 getComparisonToTargetWord,
                 recordGuess,
+                getWordIndex, // TEMP
                 getFormattedTime,
                 giveUp,
                 setWordAndDate,
@@ -105,6 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 setUsername(event) {
                     this.username = event.target.value;
                 },
+
+                // Date picker methods
+                getShortDayString,
+                backDay,
+                backWeek,
+                backMonth,
+                forwardDay,
+                forwardWeek,
+                forwardMonth,
+                toggleShowDate,
             },
         });
     }
@@ -188,8 +203,19 @@ function isSameDay() {
         const savedGame = getSavedGameByDifficulty(difficulty);
         if (!savedGame) return false;
         const savedStartTime = new Date(savedGame.startTime);
-        return getDOY(savedStartTime) === getDOY(new Date());
+        return isToday(savedStartTime);
     });
+}
+
+function isToday(date) {
+    const now = new Date();
+    return datesMatch(now, date);
+}
+
+function datesMatch(date1, date2) { // ignores time
+    return date1.getFullYear() === date2.getFullYear()
+        && date1.getMonth() === date2.getMonth()
+        && date1.getDate() === date2.getDate();
 }
 
 function getSavedGameByDifficulty(difficulty) {
@@ -298,9 +324,7 @@ function setWordAndDate() {
 }
 
 function getWord(date, difficulty) {
-    const dayOfYear = getWordIndex(date);
-    // FIXME need to fix this so it works into next year.
-    const index = dayOfYear - 114;
+    const index = getWordIndex(date);
     return possibleWords[difficulty][index];
 }
 
@@ -308,7 +332,7 @@ function getWordIndex(date) {
     const doy = getDOY(date);
     const yearOffset = (date.getFullYear() - 2019) * 365;
     // FIXME deal with leap years?
-    return doy + yearOffset;
+    return doy + yearOffset - 114;
 }
 
 function saveLastSetDifficulty({ isLocalStorageAvailable, difficulty }) {
@@ -819,4 +843,99 @@ function putLuckyBuggersAtTheBottom(array) {
     return array
         .filter(record => record.numberOfGuesses > LUCKY_BUGGER_GUESS_COUNT_THRESHOLD)
         .concat(luckyBuggers);
+}
+
+
+
+// Date picker
+
+function toggleShowDate() {
+    this.showDatePicker = !this.showDatePicker;
+}
+
+const SHORT_WEEK_DAY_BY_INDEX = [
+    'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+];
+const SHORT_MONTH_BY_INDEX = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+const MILLISECONDS_IN_DAY = 60 * 60 * 24 * 1000;
+const MILLISECONDS_IN_WEEK = MILLISECONDS_IN_DAY * 7;
+
+function backDay() {
+    this.playDate = clampDate(new Date(this.playDate - MILLISECONDS_IN_DAY));
+}
+
+function forwardDay() {
+    this.playDate = clampDate(new Date(+this.playDate + MILLISECONDS_IN_DAY));
+}
+
+function backWeek() {
+    this.playDate = clampDate(new Date(this.playDate - MILLISECONDS_IN_WEEK));
+}
+
+function forwardWeek() {
+    this.playDate = clampDate(new Date(+this.playDate + MILLISECONDS_IN_WEEK));
+}
+
+function backMonth() {
+    const monthIndex = this.playDate.getMonth();
+    if (monthIndex > 0) {
+        this.playDate.setMonth(monthIndex - 1);
+    } else {
+        const year = this.playDate.getFullYear();
+        this.playDate.setMonth(11);
+        this.playDate.setYear(year - 1);
+    }
+    this.playDate = clampDate(new Date(this.playDate));
+}
+
+function forwardMonth() {
+    const monthIndex = this.playDate.getMonth();
+    if (monthIndex < 11) {
+        this.playDate.setMonth(monthIndex + 1);
+    } else {
+        const year = this.playDate.getFullYear();
+        this.playDate.setMonth(0);
+        this.playDate.setYear(year + 1);
+    }
+    this.playDate = clampDate(new Date(this.playDate));
+}
+
+const FIRST_DATE = new Date(2019, 3, 24, 12);
+
+function clampDate(date) {
+    const now = new Date();
+    if (date > now) {
+        return now;
+    }
+    if (date < FIRST_DATE) {
+        return new Date(FIRST_DATE);
+    }
+    return date;
+}
+
+function getShortDayString() {
+    const specialDateString = getSpecialDateString(this.playDate);
+    if (specialDateString) {
+        return specialDateString;
+    }
+    const dayOfWeekIndex = this.playDate.getDay();
+    const monthIndex = this.playDate.getMonth();
+    return [
+        SHORT_WEEK_DAY_BY_INDEX[dayOfWeekIndex],
+        SHORT_MONTH_BY_INDEX[monthIndex],
+        `${this.playDate.getDate()},`,
+        this.playDate.getFullYear(),
+    ].join(' ');
+}
+
+function getSpecialDateString(date) {
+    if (isToday(date)) {
+        return 'Today';
+    }
+    if (datesMatch(date, FIRST_DATE)) {
+        return 'First day 🎂';
+    }
+    return '';
 }
