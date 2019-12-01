@@ -36,9 +36,11 @@ header {
 }
 
 
-.bigger-target,
+.bigger-target {
+    padding: 8px 8px 0px;
+}
 li, li a {
-    padding: 8px;
+    padding: 4px 0px;
 }
 
 a#give-up,
