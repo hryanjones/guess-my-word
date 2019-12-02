@@ -16,6 +16,7 @@
             id="difficulty-changer"
             v-on:change="setDifficulty"
             v-bind:class="difficulty"
+            v-bind:value="difficulty"
         >
             <option value="normal">normal</option>
             <option value="hard">hard</option>
@@ -120,12 +121,15 @@
         },
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const difficultyFromURL = urlParams.get('difficulty');
+
     new Vue({
         el: '#leaderboard-container',
         data: {
             leadersType: 'normal',
             leaders: [],
-            difficulty: 'normal',
+            difficulty: difficultyFromURL || 'normal',
             message: '',
             error: '',
             sortConfig: DEFAULT_SORT_CONFIG_BY_LEADER_TYPE.normal,

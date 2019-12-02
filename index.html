@@ -12,7 +12,6 @@
     v-bind:class="{
         'show-win': winTime,
         'gave-up': gaveUpTime,
-        'show-leaderboard': leaders,
     }"
 >
 
@@ -42,7 +41,7 @@
 
 <h3 v-if="false" style="margin-left: 78px;">Loading...</h3>
 <div v-cloak>
-    <div id="after-guesses-container" v-if="afterGuesses.length && !leaders">
+    <div id="after-guesses-container" v-if="afterGuesses.length">
         <label id="after-label" class="fixed-width-label" title="My word is after these words">
             is after:
         </label>
@@ -101,7 +100,7 @@
 
             <form
                 class="leaderboard-form"
-                v-if="winTime && guesses.length > 1 && !isReplay"
+                v-if="winTime && guesses.length > 1 && !isReplay && !submitTime"
                 v-on:submit.prevent="submitToLeaderboard"
                 v-cloak
             >
@@ -136,8 +135,16 @@
                 </div>
             </form>
 
+            <div class="leaderboard" v-if="submitTime" v-cloak>
+                Go to the
+                <a v-bind:href="`./board.html?difficulty=${difficulty}`">Completion board for "{{difficulty}}" word</a>
+                <br/><div class="warning">
+                    <strong>WARNING:</strong> may contain spoilers or inappropriate names.
+                </div>
+            </div>
+
             <h4 v-if="winTime">
-                come back tomorrow for a new word
+                Come back tomorrow for a new word<span v-if="difficulty === 'hard'">.</span>
                 <span v-if="difficulty === 'normal'">or
                     <a href="#" v-on:click="toggleDifficulty">try a hard word</a>?
                 </span>
@@ -155,7 +162,7 @@
             </h4>
         </div>
     </div>
-    <div id="before-guesses-container" v-if="beforeGuesses.length && !leaders">
+    <div id="before-guesses-container" v-if="beforeGuesses.length">
         <label id="before-label" class="fixed-width-label" title="My word is before these words">
             is before:
         </label>
@@ -171,34 +178,6 @@
         </div>
     </div>
 
-    <div class="leaderboard" v-if="leaders && leaders.length" v-cloak>
-        <h2>Completion board for "{{difficulty}}" word</h2>
-
-        <table>
-        <thead>
-            <tr>
-                <th v-for="field in LEADER_HEADER_FIELDS_BY_TYPE.normal" v-on:click="changeLeaderSort(field.key, field.sortKey)">
-                    <div class="leader-table-header-cell">
-                        <div>{{field.text}}</div>
-                        <div v-if="sortConfig.key === field.key" style="margin-left: 5px;">
-                            {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
-                        </div>
-                    </div>
-                </th>
-            </tr>
-        </thead>
-            <tbody id="leaderboard">
-                <tr v-for="leader in leaders">
-                    <td
-                        v-for="field in LEADER_HEADER_FIELDS_BY_TYPE.normal"
-                        v-bind:title="leader[field.key]"
-                    >
-                        {{leader[field.key]}}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 </div>
 
 </div>

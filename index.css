@@ -66,9 +66,6 @@ h1 {
     flex-direction: column;
     margin-bottom: 300px; /* put some space at the bottom to make it easier to scroll, esp. on mobile when keyboard is visible*/
 }
-#container.show-leaderboard {
-    margin-bottom: 0px;
-}
 #after-guesses-container,
 #before-guesses-container,
 #guesser 
@@ -170,6 +167,11 @@ form {
 
 .error {
     color: #c50000;
+}
+.warning strong {
+    color: #850000;
+}
+.error, .warning {
     font-style: italic;
     font-size: 80%
 }
@@ -190,16 +192,6 @@ form {
 .leaderboard h2::after {
     font-style: italic;
 }
-
-.show-leaderboard .leaderboard {
-    display: table;
-}
-.show-leaderboard .leaderboard-form,
-.show-leaderboard .fixed-width-label {
-    display: none
-}
-
-
 
 th {
     border-bottom: 1px solid black;
