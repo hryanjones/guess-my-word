@@ -15,6 +15,9 @@ small {
 button, select, option, input[type="submit"] {
     cursor: pointer;
 }
+button[disabled], select[disabled], option[disabled], input[disabled] {
+    cursor: not-allowed;
+}
 header {
     display: flex;
     justify-content: space-between;

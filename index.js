@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Date picker state
                 showDatePicker: false,
-                playDate: new Date(),
+                playDate: null, // if unset playdate is for "today"
             },
             methods: {
                 reset,
@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 makeGuess,
                 getComparisonToTargetWord,
                 recordGuess,
-                getWordIndex, // TEMP
                 getFormattedTime,
                 giveUp,
                 setWordAndDate,
@@ -110,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setUsername(event) {
                     this.username = event.target.value;
                 },
+                shouldShowSubmitName,
 
                 // Date picker methods
                 getShortDayString,
@@ -125,12 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (vueApp) {
-        vueApp.reset();
+        vueApp.reset({ stealFocus: true });
     }
 });
 
 
-function reset() {
+function reset(options) {
     this.word = undefined;
 
     this.guessValue = '';
@@ -148,6 +148,7 @@ function reset() {
     this.leaderSubmitError = null;
     this.leaderboardRequest = null;
 
+    if (!options || !options.stealFocus) return;
     Vue.nextTick(() => {
         getInput().focus();
     });
@@ -208,8 +209,11 @@ function isSameDay() {
 }
 
 function isToday(date) {
-    const now = new Date();
-    return datesMatch(now, date);
+    return datesMatch(now(), date);
+}
+
+function now() {
+    return new Date();
 }
 
 function datesMatch(date1, date2) { // ignores time
@@ -235,7 +239,12 @@ function setStatsFromExistingGame(app, savedGame, difficulty) {
         return;
     }
     const startTime = new Date(savedGame.startTime);
-    if (getDOY(startTime) !== getDOY(new Date())) {
+    if (!isPlayDateToday(app.playDate)) {
+        setEmptyStats(app, difficulty);
+        return;
+    }
+    const savedGameForToday = getDOY(startTime) === getDOY(now());
+    if (!savedGameForToday) {
         resetSavedGames();
         setEmptyStats(app, difficulty);
         return;
@@ -255,12 +264,21 @@ function setStatsFromExistingGame(app, savedGame, difficulty) {
     app.word = getWord(startTime, difficulty);
     app.beforeGuesses = generateGuessList(BEFORE, guesses, app.word);
     app.afterGuesses = generateGuessList(AFTER, guesses, app.word);
+    if (app.gaveUpTime || app.winTime) {
+        app.word = getWord(app.startTime, app.difficulty);
+        app.guessValue = app.word;
+    }
     if (app.submitTime || app.gaveUpTime) {
         app.isReplay = true;
         app.guessValue = app.word;
     } else {
         app.isReplay = false;
     }
+}
+
+function isPlayDateToday(playDate) {
+    if (playDate == null) return true; // by definition if playdate isn't set it is for today
+    return isToday(playDate);
 }
 
 function resetSavedGames() {
@@ -314,13 +332,15 @@ function loadStoredUserNames(app) {
 }
 
 function setWordAndDate() {
-    this.startTime = new Date();
+    this.startTime = now();
     saveGame(this);
+
+    const dateForWord = this.playDate || this.startTime;
 
     // Note: We don't want to set the word until the user starts playing as then 
     // it'd be possible for their start date and the expected word on that date 
     // not to match (and the eventual backend will verify this)
-    this.word = getWord(this.startTime, this.difficulty);
+    this.word = getWord(dateForWord, this.difficulty);
 }
 
 function getWord(date, difficulty) {
@@ -350,8 +370,9 @@ function saveGame({
     gaveUpTime,
     submitTime,
     guesses,
+    playDate,
 }) {
-    if (!isLocalStorageAvailable) {
+    if (!isLocalStorageAvailable || !isPlayDateToday(playDate)) {
         return;
     }
     if (!localStorage.getItem(RECENT_FIRST_PLAYED_DIFFICULTY)) {
@@ -394,7 +415,7 @@ function makeGuess() {
 
     const comparison = this.getComparisonToTargetWord(guess);
     if (comparison === WIN) {
-        this.winTime = new Date();
+        this.winTime = now();
         saveGame(this);
         return;
     }
@@ -480,7 +501,7 @@ function giveUp() {
         return;
     }
     this.guessValue = this.word;
-    this.gaveUpTime = new Date();
+    this.gaveUpTime = now();
     saveGame(this);
 }
 
@@ -497,8 +518,13 @@ function toggleDifficulty() {
         return;
     }
     this.difficulty = OTHER_DIFFICULTY[this.difficulty] || NORMAL;
-    this.reset();
+    this.reset({ stealFocus: true });
     saveLastSetDifficulty(this);
+}
+
+function shouldShowSubmitName() {
+    return this.winTime && this.guesses.length > 1 && !this.isReplay && !this.submitTime
+        && isPlayDateToday(this.playDate);
 }
 
 // Utilities
@@ -557,7 +583,7 @@ function submitToLeaderboard() {
         guesses: this.guesses,
     };
     const timezonelessDate = getTimezonelessLocalDate(this.startTime);
-    const submitTime = new Date();
+    const submitTime = now();
 
     const onSuccess = (json) => {
         const { sortKey, direction } = this.sortConfig;
@@ -846,11 +872,15 @@ function putLuckyBuggersAtTheBottom(array) {
 }
 
 
-
 // Date picker
 
 function toggleShowDate() {
-    this.showDatePicker = !this.showDatePicker;
+    const newShowDatePicker = !this.showDatePicker;
+    if (newShowDatePicker === false) {
+        this.playDate = null; // reset to today if they close the date picker
+        this.reset();
+    }
+    this.showDatePicker = newShowDatePicker;
 }
 
 const SHORT_WEEK_DAY_BY_INDEX = [
@@ -863,51 +893,62 @@ const MILLISECONDS_IN_DAY = 60 * 60 * 24 * 1000;
 const MILLISECONDS_IN_WEEK = MILLISECONDS_IN_DAY * 7;
 
 function backDay() {
-    this.playDate = clampDate(new Date(this.playDate - MILLISECONDS_IN_DAY));
+    const playDate = this.playDate || now();
+    setNewPlayDate(this, playDate - MILLISECONDS_IN_DAY);
 }
 
 function forwardDay() {
-    this.playDate = clampDate(new Date(+this.playDate + MILLISECONDS_IN_DAY));
+    const playDate = this.playDate || now();
+    setNewPlayDate(this, +playDate + MILLISECONDS_IN_DAY);
 }
 
 function backWeek() {
-    this.playDate = clampDate(new Date(this.playDate - MILLISECONDS_IN_WEEK));
+    const playDate = this.playDate || now();
+    setNewPlayDate(this, playDate - MILLISECONDS_IN_WEEK);
 }
 
 function forwardWeek() {
-    this.playDate = clampDate(new Date(+this.playDate + MILLISECONDS_IN_WEEK));
+    const playDate = this.playDate || now();
+    setNewPlayDate(this, +playDate + MILLISECONDS_IN_WEEK);
 }
 
 function backMonth() {
-    const monthIndex = this.playDate.getMonth();
+    const playDate = this.playDate || now();
+    const monthIndex = playDate.getMonth();
     if (monthIndex > 0) {
-        this.playDate.setMonth(monthIndex - 1);
+        playDate.setMonth(monthIndex - 1);
     } else {
-        const year = this.playDate.getFullYear();
-        this.playDate.setMonth(11);
-        this.playDate.setYear(year - 1);
+        const year = playDate.getFullYear();
+        playDate.setMonth(11);
+        playDate.setYear(year - 1);
     }
-    this.playDate = clampDate(new Date(this.playDate));
+    setNewPlayDate(this, playDate);
 }
 
 function forwardMonth() {
-    const monthIndex = this.playDate.getMonth();
+    const playDate = this.playDate || now();
+    const monthIndex = playDate.getMonth();
     if (monthIndex < 11) {
-        this.playDate.setMonth(monthIndex + 1);
+        playDate.setMonth(monthIndex + 1);
     } else {
-        const year = this.playDate.getFullYear();
-        this.playDate.setMonth(0);
-        this.playDate.setYear(year + 1);
+        const year = playDate.getFullYear();
+        playDate.setMonth(0);
+        playDate.setYear(year + 1);
     }
-    this.playDate = clampDate(new Date(this.playDate));
+    setNewPlayDate(this, playDate);
+}
+
+function setNewPlayDate(app, dateNumberOrString) {
+    const clampedDate = clampDate(new Date(dateNumberOrString));
+    app.playDate = isPlayDateToday(clampedDate) ? null : clampedDate;
+    app.reset();
 }
 
 const FIRST_DATE = new Date(2019, 3, 24, 12);
 
 function clampDate(date) {
-    const now = new Date();
-    if (date > now) {
-        return now;
+    if (date > now()) {
+        return now();
     }
     if (date < FIRST_DATE) {
         return new Date(FIRST_DATE);
@@ -930,11 +971,11 @@ function getShortDayString() {
     ].join(' ');
 }
 
-function getSpecialDateString(date) {
-    if (isToday(date)) {
+function getSpecialDateString(playDate) {
+    if (isPlayDateToday(playDate)) {
         return 'Today';
     }
-    if (datesMatch(date, FIRST_DATE)) {
+    if (datesMatch(playDate, FIRST_DATE)) {
         return 'First day 🎂';
     }
     return '';

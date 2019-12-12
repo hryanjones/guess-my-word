@@ -32,19 +32,21 @@
             <option value="hard">hard</option>
         </select>
         
-        <button v-on:click="toggleShowDate" v-cloak>📅</button>
+        <button v-on:click="toggleShowDate" v-cloak title="play passed days">📅</button>
 
-        <div class="date-picker" v-cloak v-if="showDatePicker">
-            <button v-on:click="backMonth">&lt;&lt;&lt;</button><button v-on:click="backWeek">&lt;&lt;</button><button
-                v-on:click="backDay">&lt;</button>
-            <div class="display" v-bind:class="{
-                    'centered': ['Today', 'First day 🎂'].includes(getShortDayString()),
-                }">
-                {{getShortDayString()}}
+        <div v-cloak v-if="showDatePicker">
+            <div style="margin-bottom: 10px; font-style: italic;">play a previous day for fun</div>
+            <div class="date-picker">
+                <button v-on:click="backMonth" title="back a month">&lt;m</button><button v-on:click="backWeek" title="back a month">&lt;w</button><button
+                    v-on:click="backDay" title="back a day">&lt;d</button>
+                <div class="display" v-bind:class="{
+                        'centered': ['Today', 'First day 🎂'].includes(getShortDayString()),
+                    }">
+                    {{getShortDayString()}}
+                </div>
+                <button v-on:click="forwardDay" title="forward a day" v-bind:disabled="!playDate">d&gt;</button><button v-on:click="forwardWeek" title="forward a week" v-bind:disabled="!playDate">w&gt;</button><button
+                    v-on:click="forwardMonth" title="forward a month" v-bind:disabled="!playDate">m&gt;</button>
             </div>
-            <button v-on:click="forwardDay">&gt;</button><button v-on:click="forwardWeek">&gt;&gt;</button><button
-                v-on:click="forwardMonth">&gt;&gt;&gt;</button>
-            {{getWordIndex(playDate)}}
         </div>
     </div>
 
@@ -120,7 +122,7 @@
 
             <form
                 class="leaderboard-form"
-                v-if="winTime && guesses.length > 1 && !isReplay && !submitTime"
+                v-if="shouldShowSubmitName()"
                 v-on:submit.prevent="submitToLeaderboard"
                 v-cloak
             >
@@ -163,7 +165,7 @@
                 </div>
             </div>
 
-            <h4 v-if="winTime">
+            <h4 v-if="winTime && !playDate">
                 Come back tomorrow for a new word<span v-if="difficulty === 'hard'">.</span>
                 <span v-if="difficulty === 'normal'">or
                     <a href="#" v-on:click="toggleDifficulty">try a hard word</a>?
