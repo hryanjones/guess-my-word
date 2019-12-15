@@ -85,7 +85,7 @@ h1 {
 }
 #after-guesses-container,
 #before-guesses-container,
-#guesser 
+#guesser
 {
     display: flex;
 }
@@ -234,9 +234,10 @@ td {
 td:first-child,
 td:last-child { /* name and award should be left aligned other fields, which are number should be right aligned */
     text-align: left;
-}
-td:first-child {
     white-space: unset;
+}
+td:last-child { /* awards column shouldn't be too narrow */
+    min-width: 100px;
 }
 
 .date-picker {
