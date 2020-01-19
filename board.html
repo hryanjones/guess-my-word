@@ -5,6 +5,7 @@
 <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="./index.css"/>
+<!-- <link rel="stylesheet" href="./vue-virtual-scroller.css"/> -->
 </head>
 <body>
 <div id="leaderboard-container">
@@ -81,6 +82,7 @@
 </div>
 
 <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+<!-- <script src="./vue-virtual-scroller.min.js"></script> -->
 <script src="index.js"></script>
 <script>
     function getLeaders(type) {
@@ -101,6 +103,8 @@
             this.error = '';
             if (this.leaders.length === 0) {
                 this.message = 'nobody has guessed the word for today';
+            } else {
+                this.message = '';
             }
         }
 
@@ -109,6 +113,8 @@
             this.message = '';
             this.error = UNKNOWN_LEADERBOARD_ERROR;
         };
+
+        this.message = 'loading...';
         makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
     }
 
