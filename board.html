@@ -27,7 +27,7 @@
 
 <div class="leaderboard" v-cloak>
     <h2>
-        Completion board for "{{difficulty}}" 
+        Completion board for "{{difficulty}}"
         <select
             style="font-size: 0.8em;"
             v-bind:value="leadersType"
@@ -38,14 +38,19 @@
         </select>
     </h2>
 
+<!--
+    <button v-on:click="reportBadUserName('blah')">Report!</button>
+    <button v-on:click="getBadUserNames()">Get bad names</button>
+-->
+
     <div class="error">{{error}}</div>
 
     <div>{{message}}</div>
-    
+
     <table v-if="leaders.length">
         <thead>
             <tr>
-                <th 
+                <th
                     v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]"
                     v-on:click="changeLeaderSort(field.key, field.sortKey)"
                 >
@@ -75,7 +80,6 @@
 </div>
 </div>
 
-<script src="https://d2t3dun0il9ood.cloudfront.net/dictionary.js"></script>
 <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
 <script src="index.js"></script>
 <script>

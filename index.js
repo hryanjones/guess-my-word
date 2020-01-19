@@ -10,6 +10,12 @@ const possibleWords = {
 };
 /* eslint-enable */
 
+ const BOARD_SERVER = 'https://home.hryanjones.com';
+// const BOARD_SERVER = 'http://192.168.0.144:8080';
+// const BOARD_SERVER = 'https://hryanjones.builtwithdark.com';
+
+const BAD_NAMES_SERVER = 'https://hryanjones.builtwithdark.com/gmw/bad-names';
+
 const WIN = 'win';
 const BEFORE = 'before';
 const AFTER = 'after';
@@ -111,6 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 shouldShowSubmitName,
 
+                reportBadUserName,
+                getBadUserNames,
+
                 // Date picker methods
                 getShortDayString,
                 backDay,
@@ -150,7 +159,7 @@ function reset(options) {
 
     if (!options || !options.stealFocus) return;
     Vue.nextTick(() => {
-        getInput().focus();
+        getElement('new-guess').focus();
     });
 }
 
@@ -337,8 +346,8 @@ function setWordAndDate() {
 
     const dateForWord = this.playDate || this.startTime;
 
-    // Note: We don't want to set the word until the user starts playing as then 
-    // it'd be possible for their start date and the expected word on that date 
+    // Note: We don't want to set the word until the user starts playing as then
+    // it'd be possible for their start date and the expected word on that date
     // not to match (and the eventual backend will verify this)
     this.word = getWord(dateForWord, this.difficulty);
 }
@@ -388,13 +397,9 @@ function saveGame({
     }));
 }
 
-function getInput() {
-    return getElement('new-guess');
-}
-
 function setGuess(event) {
     this.guessValue = event.target.value;
-    if (this.guessError) {
+    if (this.guessError) { // only re-evaluate form validity on-the-fly if it was invalid
         this.guessError = this.getInvalidReason(sanitizeGuess(this.guessValue));
     }
 }
@@ -443,7 +448,7 @@ function getInvalidReason(guess) {
 }
 
 function isAValidWord(guess) {
-    let level = validWordTrie; // eslint-disable-line no-undef 
+    let level = validWordTrie; // eslint-disable-line no-undef
     for (const letter of guess) {
         level = level[letter];
         if (!level) return false;
@@ -607,6 +612,11 @@ function submitToLeaderboard() {
 }
 
 function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData) {
+    const url = `${BOARD_SERVER}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`;
+    return makeRequest(url, onSuccess, onFailure, postData);
+}
+
+function makeRequest(url, onSuccess, onFailure, postData) {
     let responseStatus;
     let body;
     let method = 'GET';
@@ -617,12 +627,7 @@ function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure
         body = JSON.stringify(postData);
     }
 
-    const server = 'https://home.hryanjones.com';
-    // const server = 'http://192.168.0.144:8080';
-    // const server = 'https://hryanjones.builtwithdark.com';
-
-
-    return fetch(`${server}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`, {
+    return fetch(url, {
         method,
         mode: 'cors',
         cache: 'no-store', // *default, no-cache, reload, force-cache, only-if-cached
@@ -871,6 +876,18 @@ function putLuckyBuggersAtTheBottom(array) {
         .concat(luckyBuggers);
 }
 
+
+function reportBadUserName(badUserName) {
+    badUserName = badUserName || 'Fuck eric';
+    const url = `${BAD_NAMES_SERVER}`;
+    const postData = { badUserName, reporter: 'whatever!' };
+    makeRequest(url, console.log, console.error, postData);
+}
+
+function getBadUserNames() {
+    const url = `${BAD_NAMES_SERVER}`;
+    makeRequest(url, console.log, console.error);
+}
 
 // Date picker
 
