@@ -826,6 +826,7 @@ function changeLeaderSort(newKey, newSortKey) {
     this.sortConfig = { direction, key, sortKey };
 
     this.leaders = sortLeaders(this.leaders, sortKey, direction);
+    this.onSearch();
 }
 
 const SECONDARY_SORT_KEY_BY_PRIMARY_SORT_KEY = {
@@ -847,10 +848,13 @@ function sortArrayByKey(array, key, direction) {
 }
 
 function sortByKeyAsc(first, second, key, secondaryKey) {
-    if (first[key] > second[key]) {
+    // always do caseinsensitive sorting
+    const firstValue = lowercase(first[key]);
+    const secondValue = lowercase(second[key]);
+    if (firstValue > secondValue) {
         return 1;
     }
-    if (first[key] < second[key]) {
+    if (firstValue < secondValue) {
         return -1;
     }
 
@@ -859,6 +863,10 @@ function sortByKeyAsc(first, second, key, secondaryKey) {
     }
 
     return 0;
+}
+
+function lowercase(value) {
+    return value && value.toLowerCase && value.toLowerCase() || value;
 }
 
 function sortByKeyDesc(first, second, key, secondaryKey) {

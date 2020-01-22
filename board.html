@@ -5,84 +5,84 @@
 <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="./index.css"/>
-<!-- <link rel="stylesheet" href="./vue-virtual-scroller.css"/> -->
+<link rel="stylesheet" href="./vue-virtual-scroller.css"/>
 </head>
-<body>
+<body style="margin: 0px;">
 <div id="leaderboard-container">
 
-<header>
-    <h1>
-        <a href="./" class="home">Guess my word</a>
-        <select
-            id="difficulty-changer"
-            v-on:change="setDifficulty"
-            v-bind:class="difficulty"
-            v-bind:value="difficulty"
-        >
-            <option value="normal">normal</option>
-            <option value="hard">hard</option>
-        </select>
-    </h1>
-    <a class="bigger-target" href="./README.html">about</a>
-</header>
 
-<div class="leaderboard" v-cloak>
-    <h2>
-        Completion board for "{{difficulty}}"
-        <select
-            style="font-size: 0.8em;"
-            v-bind:value="leadersType"
-            v-on:change="toggleLeaderType"
-        >
-            <option value="normal">for Today</option>
-            <option value="allTime">for All time</option>
-        </select>
-    </h2>
+<div class="leaderboard">
 
-<!--
-    <button v-on:click="reportBadUserName('blah')">Report!</button>
-    <button v-on:click="getBadUserNames()">Get bad names</button>
--->
+    <dynamic-scroller
+        v-if="leaders.length"
+        :items="filteredLeaders || leaders"
+        :min-item-size="18.5"
+        key-field="name"
+        :class="'leaderboard-table ' + leadersType"
+        prerender="4"
+    >
+        <template #before>
+            <header style="padding-top: 8px;">
+                <h1>
+                    <a href="./" class="home">Guess my word</a>
+                    <select id="difficulty-changer" v-on:change="setDifficulty" v-bind:class="difficulty" v-bind:value="difficulty">
+                        <option value="normal">normal</option>
+                        <option value="hard">hard</option>
+                    </select>
+                </h1>
+                <a class="bigger-target" href="./README.html">about</a>
+            </header>
 
-    <div class="error">{{error}}</div>
+            <h2 style="display: inline-block; margin-right: 15px;">
+                Completion board for "{{difficulty}}"
+                <select style="font-size: 0.8em;" v-bind:value="leadersType" v-on:change="toggleLeaderType">
+                    <option value="normal">for Today</option>
+                    <option value="allTime">for All time</option>
+                </select>
 
-    <div>{{message}}</div>
+            </h2>
+            <form v-on:submit.prevent="onSearch" style="display: inline-block; margin: 0 0 15px;">
+                <input type="text" placeholder="search names" :value="leaderSearch" v-on:change="updateLeaderSearch"/>
+                <input type="submit" value="🔎"/>
+            </form>
+            <button v-if="filteredLeaders" v-on:click="clearSearch">X</button>
 
-    <table v-if="leaders.length">
-        <thead>
-            <tr>
-                <th
+            <div class="error">{{error}}</div>
+
+            <div>{{message}}</div>
+
+            <div id="leaderboard-header-top"></div>
+            <div class="header row" id="leaderboard-header">
+                <div
                     v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]"
                     v-on:click="changeLeaderSort(field.key, field.sortKey)"
+                    :class="field.key + '-cell cell'"
                 >
-                    <div class="leader-table-header-cell">
-                        <div>{{field.text}}</div>
-                        <div
-                            v-if="sortConfig.key === field.key"
-                            style="margin-left: 5px;"
-                        >
-                            {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
-                        </div>
-                    </div>
-                </th>
-            </tr>
-        </thead>
-        <tbody id="leaderboard">
-            <tr v-for="leader in leaders">
-                <td
+                    <span v-if="sortConfig.key === field.key" style="margin-left: 5px;">
+                        {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
+                    </span>
+                    {{field.text}}
+                </div>
+            </div>
+        </template>
+        <template v-slot="{item, index, active}">
+            <dynamic-scroller-item :item="item" :active="active" :data-index="index" class="row">
+                <div
                     v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]"
-                    v-bind:title="leader[field.key]"
+                    :class="field.key + '-cell cell ' + (index % 2 === 0 ? 'even' : '')"
+                    :title="item[field.key]"
                 >
-                    {{leader[field.key]}}
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                    {{item[field.key]}}
+                </div>
+            </dynamic-scroller-item>
+        </template>
+    </dynamic-scroller>
+
 </div>
 </div>
 
 <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
-<!-- <script src="./vue-virtual-scroller.min.js"></script> -->
+<script src="./vue-virtual-scroller.min.js"></script>
 <script src="index.js"></script>
 <script>
     function getLeaders(type) {
@@ -104,6 +104,7 @@
             if (this.leaders.length === 0) {
                 this.message = 'nobody has guessed the word for today';
             } else {
+                this.onSearch();
                 this.message = '';
             }
         }
@@ -115,6 +116,7 @@
         };
 
         this.message = 'loading...';
+        this.leaders = [];
         makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
     }
 
@@ -133,6 +135,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const difficultyFromURL = urlParams.get('difficulty');
+    const searchFromURL = urlParams.get('search');
 
     new Vue({
         el: '#leaderboard-container',
@@ -143,6 +146,8 @@
             message: '',
             error: '',
             sortConfig: DEFAULT_SORT_CONFIG_BY_LEADER_TYPE.normal,
+            leaderSearch: searchFromURL,
+            filteredLeaders: null,
         },
         created() {
             this.getLeaders(this.leadersType);
@@ -159,9 +164,75 @@
                 this.leadersType = this.leadersType === 'normal' ? 'allTime' : 'normal';
                 this.sortConfig = DEFAULT_SORT_CONFIG_BY_LEADER_TYPE[this.leadersType];
                 this.getLeaders(this.leadersType)
+            },
+            updateLeaderSearch(e) {
+                this.leaderSearch = e.target.value;
+            },
+            onSearch(e) {
+                const searchTerm = this.leaderSearch.trim().toLowerCase();
+                if (!searchTerm) {
+                    this.filteredLeaders = null;
+                } else {
+                    this.filteredLeaders = this.leaders.filter(leader => leader.name.toLowerCase().includes(searchTerm));
+                }
+                return e ? false : true;
+            },
+            clearSearch() {
+                this.leaderSearch = '';
+                this.onSearch();
             }
         },
     });
+
+    const throttledHandleScroll = throttle(handleScroll, 100);
+
+    document.addEventListener('scroll',throttledHandleScroll, true);
+
+    function handleScroll() {
+        const header = document.getElementById('leaderboard-header');
+        if (!header) return;
+        const headerTop = document.getElementById('leaderboard-header-top');
+        const headerTopPosition = headerTop && headerTop.getBoundingClientRect();
+        const top = headerTopPosition && headerTopPosition.top || 0;
+        if (top < 0) {
+            if (header.style.position !== 'fixed') header.style.position = 'fixed';
+            header.style.left = headerTopPosition.left + 'px';
+            return;
+        }
+        if (header.style.position !== 'static') header.style.position = 'static';
+    }
+
+    // stolen and modified from
+    // https://stackoverflow.com/questions/27078285/simple-throttle-in-js
+    function throttle(func, wait) {
+        var context, args, result;
+        var timeout = null;
+        var previous = 0;
+        var later = function() {
+            timeout = null;
+            result = func.apply(context, args);
+            if (!timeout) context = args = null;
+        };
+        const trailing = true;
+        return function() {
+            var now = Date.now();
+            var remaining = wait - (now - previous);
+            context = this;
+            args = arguments;
+            if (remaining <= 0 || remaining > wait) {
+                if (timeout) {
+                    clearTimeout(timeout);
+                    timeout = null;
+                }
+                previous = now;
+                result = func.apply(context, args);
+                if (!timeout) context = args = null;
+            } else if (!timeout && trailing) {
+                timeout = setTimeout(later, remaining);
+            }
+            return result;
+        };
+    };
 </script>
 
 <script src="/assets/js/googleAnalytics.js"></script>
