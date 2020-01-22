@@ -27,7 +27,7 @@ const OTHER_DIFFICULTY = {
 };
 let vueApp;
 
-const UNKNOWN_LEADERBOARD_ERROR = "Sorry, can't contact the leaderboard right now. Please try again in a little bit. (please contact @hryanjones if it persists)";
+const UNKNOWN_LEADERBOARD_ERROR = 'Sorry, the completion board is having trouble right now. Please try again in a little bit. (contact @hryanjones if it persists)';
 
 const FORMATTED_TIME_KEYS = {
     time: 'formattedTime',
@@ -640,17 +640,17 @@ function makeRequest(url, onSuccess, onFailure, postData) {
         })
         .catch(onFailure)
         .then((json) => {
-            if (responseStatus !== 200) {
-                onFailure(json);
+            if (responseStatus !== 200 && responseStatus !== 201) {
+                onFailure(json, responseStatus);
                 return;
             }
             onSuccess(json);
         });
 }
 
-function handleBadResponse(json) {
+function handleBadResponse(json, responseStatus) {
     const invalidReason = (json && json.invalidReason)
-        || UNKNOWN_LEADERBOARD_ERROR;
+        || `${UNKNOWN_LEADERBOARD_ERROR} ${responseStatus}`;
     this.leaderSubmitError = invalidReason;
     this.leaderboardRequest = null;
     console.warn(invalidReason); // eslint-disable-line no-console
