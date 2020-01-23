@@ -19,42 +19,44 @@ const FORMATTED_TIME_KEYS = {
 
 const LEADER_HEADER_FIELDS_BY_TYPE = {
     normal: [
-        { text: 'name', key: 'name', sortKey: 'name' },
-        { text: '# guesses', key: 'numberOfGuesses', sortKey: 'numberOfGuesses' },
-        { text: 'time', key: FORMATTED_TIME_KEYS.time, sortKey: 'time' },
-        { text: 'awards', key: 'awards', sortKey: 'awards' },
+        { text: 'name', key: 'name' },
+        { text: '# guesses', key: 'numberOfGuesses' },
+        { text: 'time', key: 'time', formatter: getFormattedTime },
+        { text: 'awards', key: 'awards' },
     ],
     allTime: [
-        { text: 'name', key: 'name', sortKey: 'name' },
-        { text: 'weekly play rate', key: 'weeklyPlayRate', sortKey: 'weeklyPlayRate' },
-        { text: '# plays', key: 'playCount', sortKey: 'playCount' },
-        { text: 'best time', key: FORMATTED_TIME_KEYS.bestTime, sortKey: 'bestTime' },
-        { text: 'median time', key: FORMATTED_TIME_KEYS.timeMedian, sortKey: 'timeMedian' },
-        { text: 'best # guesses', key: 'bestNumberOfGuesses', sortKey: 'bestNumberOfGuesses' },
-        { text: 'median # guesses', key: 'numberOfGuessesMedian', sortKey: 'numberOfGuessesMedian' },
-        { text: 'first play date', key: 'firstSubmitDate', sortKey: 'firstSubmitDate' },
-        { text: 'awards', key: 'awards', sortKey: 'awards' },
+        { text: 'name', key: 'name' },
+        { text: 'weekly play rate', key: 'weeklyPlayRate' },
+        { text: '# plays', key: 'playCount' },
+        { text: 'best time', key: 'bestTime', formatter: getFormattedTime },
+        { text: 'median time', key: 'timeMedian', formatter: getFormattedTime },
+        { text: 'best # guesses', key: 'bestNumberOfGuesses' },
+        { text: 'median # guesses', key: 'numberOfGuessesMedian' },
+        { text: 'first play date', key: 'firstSubmitDate' },
+        { text: 'awards', key: 'awards' },
     ],
 };
 
-const dataKeys = Object.values(LEADER_HEADER_FIELDS_BY_TYPE.normal)
-    .concat(Object.values(LEADER_HEADER_FIELDS_BY_TYPE.allTime))
-    .map(field => field.key);
+const allHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE.normal
+    .concat(LEADER_HEADER_FIELDS_BY_TYPE.allTime);
+
+// add default pass-through formatter
+allHeaderFields.forEach((field) => {
+    field.formatter = field.formatter || passThrough;
+});
 
 const EMPTY_LEADER = {}; // the empty leader is required for the virtualized board to render
-dataKeys.forEach((key) => {
+allHeaderFields.map(field => field.key).forEach((key) => {
     EMPTY_LEADER[key] = '';
 });
 
 const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
     normal: {
         key: 'numberOfGuesses',
-        sortKey: 'numberOfGuesses',
         direction: 'ascending',
     },
     allTime: {
         key: 'weeklyPlayRate',
-        sortKey: 'weeklyPlayRate',
         direction: 'descending',
     },
 };
@@ -141,10 +143,10 @@ function getLeaders(type) {
     }
 
     const onSuccess = (json) => {
-        const { sortKey, direction } = this.sortConfig;
+        const { key, direction } = this.sortConfig;
         this.leaders = sortLeaders(
             normalizeLeadersAndAddAwards(json, this.leadersType),
-            sortKey,
+            key,
             direction,
         );
         this.error = '';
@@ -173,18 +175,17 @@ const OPPOSITE_SORT_DIRECTION = {
     descending: 'ascending',
 };
 
-function changeLeaderSort(newKey, newSortKey) {
-    let { direction, key, sortKey } = this.sortConfig;
+function changeLeaderSort(newKey) {
+    let { direction, key } = this.sortConfig;
     if (newKey === this.sortConfig.key) {
         direction = OPPOSITE_SORT_DIRECTION[direction];
     } else {
         key = newKey;
-        sortKey = newSortKey || newKey;
     }
 
-    this.sortConfig = { direction, key, sortKey };
+    this.sortConfig = { direction, key };
 
-    this.leaders = sortLeaders(this.leaders, sortKey, direction);
+    this.leaders = sortLeaders(this.leaders, key, direction);
     this.onSearch();
 }
 
@@ -383,6 +384,10 @@ function addAwards({ award, names }, leadersByName) {
     names.forEach((name) => {
         leadersByName[name].awards.push(award);
     });
+}
+
+function passThrough(input) {
+    return input;
 }
 
 /* eslint-disable */

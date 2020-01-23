@@ -60,14 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 leaderboardRequest: null,
                 leaderSubmitError: '',
 
-                // leadersType: 'normal',
-                // leaders: null,
-                // sortConfig: {
-                //     key: 'numberOfGuesses',
-                //     sortKey: 'numberOfGuesses',
-                //     direction: 'ascending',
-                // },
-
                 // Date picker state
                 showDatePicker: false,
                 playDate: null, // if unset playdate is for "today"

@@ -70,6 +70,9 @@ function leftPad(string, desiredLength, character = '0') {
 }
 
 function getFormattedTime(milliseconds) {
+    if (!Number.isInteger(milliseconds)) {
+        return '';
+    }
     let seconds = Math.round((milliseconds) / 1000);
     const hours = Math.floor(seconds / 3600);
     seconds %= 3600;

@@ -59,7 +59,7 @@
             <div v-if="areLeadersLoaded()" class="header row" id="leaderboard-header">
                 <div
                     v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]"
-                    v-on:click="changeLeaderSort(field.key, field.sortKey)"
+                    v-on:click="changeLeaderSort(field.key)"
                     :class="field.key + '-cell cell'"
                 >
                     <span v-if="sortConfig.key === field.key" style="margin-left: 5px;">
@@ -76,7 +76,7 @@
                     :class="field.key + '-cell cell ' + (index % 2 === 0 ? 'even' : '')"
                     :title="item[field.key]"
                 >
-                    {{item[field.key]}}
+                    {{field.formatter(item[field.key])}}
                 </div>
             </dynamic-scroller-item>
         </template>
