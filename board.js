@@ -11,12 +11,6 @@ const THAT_GUY_NAME = 'THAT GUY 🤦‍♀️'; // name that signifies a user is
 
 const LUCKY_BUGGER_GUESS_COUNT_THRESHOLD = 3;
 
-const FORMATTED_TIME_KEYS = {
-    time: 'formattedTime',
-    bestTime: 'formattedBestTime',
-    timeMedian: 'formattedTimeMedian',
-};
-
 const LEADER_HEADER_FIELDS_BY_TYPE = {
     normal: [
         { text: 'name', key: 'name' },
@@ -348,13 +342,6 @@ function prepareLeaderForBoard(name, leadersByName) {
     const leader = leadersByName[name];
     // warning mutating inputs here, don't care YOLO
     leader.name = name;
-    Object.keys(FORMATTED_TIME_KEYS).forEach((key) => {
-        const timeValue = leader[key];
-        if (timeValue) {
-            const formattedKey = FORMATTED_TIME_KEYS[key];
-            leader[formattedKey] = getFormattedTime(timeValue);
-        }
-    });
     if (leader.weeklyPlayRate) {
         leader.weeklyPlayRate = leader.weeklyPlayRate.toFixed(2);
     }
