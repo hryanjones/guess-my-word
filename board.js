@@ -249,7 +249,14 @@ function isLuckyRecord(record) {
     return record.awards.includes(LUCKY_AWARD);
 }
 
-function normalizeLeadersAndAddAwards(leadersByName, type) {
+function normalizeLeadersAndAddAwards(leadersData, type) {
+    if (Array.isArray(leadersData)) {
+        return leadersData.map((l) => {
+            l.awards = l.awards || ''; // normalize awards
+            return l;
+        });
+    }
+    const leadersByName = leadersData;
     const leaders = [];
 
     const awardTrackers = getNewAwardTrackers(type);
