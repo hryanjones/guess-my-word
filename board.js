@@ -3,7 +3,8 @@ Vue,
 getTimezonelessLocalDate,
 UNKNOWN_LEADERBOARD_ERROR,
 makeLeaderboardRequest,
-getFormattedTime
+getFormattedTime,
+urlParams,
 */
 
 const THAT_GUY_NAME = 'THAT GUY 🤦‍♀️'; // name that signifies a user is using an inappropriate username
@@ -58,7 +59,6 @@ const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
     },
 };
 
-const urlParams = new URLSearchParams(window.location.search);
 const difficultyFromURL = urlParams.get('difficulty');
 const searchFromURL = urlParams.get('search');
 
