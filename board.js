@@ -227,15 +227,26 @@ function sortByKeyDesc(first, second, key, secondaryKey) {
     return -1 * sortByKeyAsc(first, second, key, secondaryKey);
 }
 
+const LUCKY_AWARD = '🍀 lucky?';
+
 function putLuckyBuggersAtTheBottom(array) {
-    if (!array[0] || !array[0].numberOfGuesses) {
+    if (array.length <= 1) {
         return array;
     }
-    const luckyBuggers = array
-        .filter(record => record.numberOfGuesses <= LUCKY_BUGGER_GUESS_COUNT_THRESHOLD);
-    return array
-        .filter(record => record.numberOfGuesses > LUCKY_BUGGER_GUESS_COUNT_THRESHOLD)
-        .concat(luckyBuggers);
+    const luckyBuggers = [];
+    const goodPeople = [];
+    array.forEach((record) => {
+        if (isLuckyRecord(record)) {
+            luckyBuggers.push(record);
+        } else {
+            goodPeople.push(record);
+        }
+    });
+    return goodPeople.concat(luckyBuggers);
+}
+
+function isLuckyRecord(record) {
+    return record.awards.includes(LUCKY_AWARD);
 }
 
 function normalizeLeadersAndAddAwards(leadersByName, type) {
@@ -244,7 +255,7 @@ function normalizeLeadersAndAddAwards(leadersByName, type) {
     const awardTrackers = getNewAwardTrackers(type);
     const luckyTracker = {
         names: [],
-        award: '🍀 lucky?',
+        award: LUCKY_AWARD,
     };
 
     for (const name in leadersByName) {
