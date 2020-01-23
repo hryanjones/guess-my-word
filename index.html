@@ -21,7 +21,7 @@
             <a href="./" class="home">Guess my word</a>
         </h1>
 
-        <select 
+        <select
             id="difficulty-changer"
             v-on:change="toggleDifficulty"
             v-bind:value="difficulty"
@@ -31,7 +31,7 @@
             <option value="normal">normal</option>
             <option value="hard">hard</option>
         </select>
-        
+
         <button v-on:click="toggleShowDate" v-cloak title="play passed days">📅</button>
 
         <div v-cloak v-if="showDatePicker">
@@ -89,12 +89,12 @@
             </p>
             <h3 v-if="gaveUpTime">My word is:</h3>
             <form name="guesser" v-on:submit.prevent="makeGuess" autocomplete="off">
-                <input 
+                <input
                     id="new-guess"
-                    placeholder="type a word then -->" 
+                    placeholder="type a word then -->"
                     type="text"
                     autocomplete="off"
-                    v-on:input="setGuess" 
+                    v-on:input="setGuess"
                     v-bind:disabled="winTime || gaveUpTime"
                     v-bind:value="guessValue"
                 />
@@ -128,7 +128,7 @@
             >
                 <br/>
                 <label>
-                    enter your name for the completion board<br/>                    
+                    enter your name for the completion board<br/>
                     <input
                         autocomplete="on"
                         required
@@ -174,9 +174,9 @@
 
             <h4 v-if="gaveUpTime">
                 better luck tomorrow
-                <span v-if="difficulty === 'hard'">or 
+                <span v-if="difficulty === 'hard'">or
                     <a
-                        href="#" 
+                        href="#"
                         v-on:click="toggleDifficulty"
                     >
                         try a normal word</a>?
@@ -189,7 +189,7 @@
             is before:
         </label>
         <div id="before-guesses">
-            <div 
+            <div
                 v-for="guess in beforeGuesses"
                 class="guess"
                 v-bind:class="{
@@ -207,6 +207,7 @@
 
 <script src="https://d2t3dun0il9ood.cloudfront.net/dictionary.js"></script>
 <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+<script src="common.js"></script>
 <script src="index.js"></script>
 
 <!-- Uncomment to run tests in browser -->

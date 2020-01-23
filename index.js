@@ -10,11 +10,6 @@ const possibleWords = {
 };
 /* eslint-enable */
 
- const BOARD_SERVER = 'https://home.hryanjones.com';
-// const BOARD_SERVER = 'http://192.168.0.144:8080';
-// const BOARD_SERVER = 'https://hryanjones.builtwithdark.com';
-
-const BAD_NAMES_SERVER = 'https://hryanjones.builtwithdark.com/gmw/bad-names';
 
 const WIN = 'win';
 const BEFORE = 'before';
@@ -85,15 +80,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 isLocalStorageAvailable: null,
                 isReplay: false,
 
-                leadersType: 'normal',
-                leaders: null,
                 leaderboardRequest: null,
                 leaderSubmitError: '',
-                sortConfig: {
-                    key: 'numberOfGuesses',
-                    sortKey: 'numberOfGuesses',
-                    direction: 'ascending',
-                },
+
+                // leadersType: 'normal',
+                // leaders: null,
+                // sortConfig: {
+                //     key: 'numberOfGuesses',
+                //     sortKey: 'numberOfGuesses',
+                //     direction: 'ascending',
+                // },
 
                 // Date picker state
                 showDatePicker: false,
@@ -590,13 +586,7 @@ function submitToLeaderboard() {
     const timezonelessDate = getTimezonelessLocalDate(this.startTime);
     const submitTime = now();
 
-    const onSuccess = (json) => {
-        const { sortKey, direction } = this.sortConfig;
-        this.leaders = sortLeaders(
-            normalizeLeadersAndAddAwards(json, this.leadersType),
-            sortKey,
-            direction,
-        );
+    const onSuccess = () => {
         this.submitTime = submitTime;
         saveGame(this);
         saveUserName(this, name);
