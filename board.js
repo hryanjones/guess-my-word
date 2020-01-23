@@ -1,4 +1,10 @@
-/* global Vue, makeLeaderboardRequest, getTimezonelessLocalDate, UNKNOWN_LEADERBOARD_ERROR */
+/* global
+Vue,
+getTimezonelessLocalDate,
+UNKNOWN_LEADERBOARD_ERROR,
+makeLeaderboardRequest,
+getFormattedTime
+*/
 
 const THAT_GUY_NAME = 'THAT GUY 🤦‍♀️'; // name that signifies a user is using an inappropriate username
 
@@ -39,42 +45,6 @@ dataKeys.forEach((key) => {
     EMPTY_LEADER[key] = '';
 });
 
-function getLeaders(type) {
-    let date;
-    if (type === 'allTime') {
-        date = 'ALL';
-    } else {
-        date = getTimezonelessLocalDate(new Date());
-    }
-
-    const onSuccess = (json) => {
-        const { sortKey, direction } = this.sortConfig;
-        this.leaders = sortLeaders(
-            normalizeLeadersAndAddAwards(json, this.leadersType),
-            sortKey,
-            direction,
-        );
-        this.error = '';
-        if (this.leaders.length === 0) {
-            this.message = 'nobody has guessed the word for today';
-            this.leaders = [EMPTY_LEADER];
-        } else {
-            this.onSearch();
-            this.message = '';
-        }
-    }
-
-    const onFailure = () => {
-        this.leaders = [EMPTY_LEADER];
-        this.message = '';
-        this.error = UNKNOWN_LEADERBOARD_ERROR;
-    };
-
-    this.message = 'loading...';
-    this.leaders = [EMPTY_LEADER];
-    makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
-}
-
 const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
     normal: {
         key: 'numberOfGuesses',
@@ -86,13 +56,13 @@ const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
         sortKey: 'weeklyPlayRate',
         direction: 'descending',
     },
-}
+};
 
 const urlParams = new URLSearchParams(window.location.search);
 const difficultyFromURL = urlParams.get('difficulty');
 const searchFromURL = urlParams.get('search');
 
-new Vue({
+const app = new Vue({ // eslint-disable-line no-unused-vars
     el: '#leaderboard-container',
     data: {
         leadersType: 'normal',
@@ -118,7 +88,7 @@ new Vue({
         toggleLeaderType() {
             this.leadersType = this.leadersType === 'normal' ? 'allTime' : 'normal';
             this.sortConfig = DEFAULT_SORT_CONFIG_BY_LEADER_TYPE[this.leadersType];
-            this.getLeaders(this.leadersType)
+            this.getLeaders(this.leadersType);
         },
         updateLeaderSearch(e) {
             this.leaderSearch = e.target.value;
@@ -128,9 +98,11 @@ new Vue({
             if (!searchTerm) {
                 this.filteredLeaders = null;
             } else {
-                this.filteredLeaders = this.leaders.filter(leader => leader.name.toLowerCase().includes(searchTerm));
+                this.filteredLeaders = this.leaders.filter(leader => (
+                    leader.name.toLowerCase().includes(searchTerm)
+                ));
             }
-            return e ? false : true;
+            return !e; // return false if it's from submit
         },
         clearSearch() {
             this.leaderSearch = '';
@@ -138,7 +110,7 @@ new Vue({
         },
         areLeadersLoaded() {
             return this.leaders[0] !== EMPTY_LEADER;
-        }
+        },
     },
 });
 
@@ -151,15 +123,50 @@ function handleScroll() {
     if (!header) return;
     const headerTop = document.getElementById('leaderboard-header-top');
     const headerTopPosition = headerTop && headerTop.getBoundingClientRect();
-    const top = headerTopPosition && headerTopPosition.top || 0;
+    const top = (headerTopPosition && headerTopPosition.top) || 0;
     if (top < 0) {
         if (header.style.position !== 'fixed') header.style.position = 'fixed';
-        header.style.left = headerTopPosition.left + 'px';
+        header.style.left = `${headerTopPosition.left}px`;
         return;
     }
     if (header.style.position !== 'static') header.style.position = 'static';
 }
 
+function getLeaders(type) {
+    let date;
+    if (type === 'allTime') {
+        date = 'ALL';
+    } else {
+        date = getTimezonelessLocalDate(new Date());
+    }
+
+    const onSuccess = (json) => {
+        const { sortKey, direction } = this.sortConfig;
+        this.leaders = sortLeaders(
+            normalizeLeadersAndAddAwards(json, this.leadersType),
+            sortKey,
+            direction,
+        );
+        this.error = '';
+        if (this.leaders.length === 0) {
+            this.message = 'nobody has guessed the word for today';
+            this.leaders = [EMPTY_LEADER];
+        } else {
+            this.onSearch();
+            this.message = '';
+        }
+    };
+
+    const onFailure = () => {
+        this.leaders = [EMPTY_LEADER];
+        this.message = '';
+        this.error = UNKNOWN_LEADERBOARD_ERROR;
+    };
+
+    this.message = 'loading...';
+    this.leaders = [EMPTY_LEADER];
+    makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
+}
 
 const OPPOSITE_SORT_DIRECTION = {
     ascending: 'descending',

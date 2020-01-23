@@ -1,4 +1,11 @@
-/* global Vue, getTimezonelessLocalDate, UNKNOWN_LEADERBOARD_ERROR, makeLeaderboardRequest */
+/* global
+Vue,
+getTimezonelessLocalDate,
+UNKNOWN_LEADERBOARD_ERROR,
+makeLeaderboardRequest,
+getFormattedTime,
+validWordTrie
+*/
 
 
 /* eslint-disable */
@@ -410,7 +417,7 @@ function getInvalidReason(guess) {
 }
 
 function isAValidWord(guess) {
-    let level = validWordTrie; // eslint-disable-line no-undef
+    let level = validWordTrie;
     for (const letter of guess) {
         level = level[letter];
         if (!level) return false;
@@ -424,28 +431,6 @@ function getComparisonToTargetWord(guess) {
     }
     return guess > this.word ? BEFORE : AFTER;
 }
-
-function getFormattedTime(milliseconds) {
-    let seconds = Math.round((milliseconds) / 1000);
-    const hours = Math.floor(seconds / 3600);
-    seconds %= 3600;
-    const minutes = Math.floor(seconds / 60);
-    seconds %= 60;
-
-    const formattedTime = [];
-    if (hours) {
-        formattedTime.push(`${hours}h`);
-    }
-    if (minutes) {
-        formattedTime.push(`${minutes}m`);
-    }
-    if (seconds) {
-        formattedTime.push(`${seconds}s`);
-    }
-
-    return formattedTime.join(' ') || '0s';
-}
-
 
 function recordGuess(guess, comparison) {
     const previousGuesses = comparison === AFTER ? this.afterGuesses : this.beforeGuesses;
