@@ -88,12 +88,13 @@
                 ({{guesses.length}} guesses in {{getFormattedTime(winTime - startTime)}})
             </p>
             <h3 v-if="gaveUpTime">My word is:</h3>
-            <form name="guesser" v-on:submit.prevent="makeGuess" autocomplete="off">
+            <form name="guesser" v-on:submit.prevent="makeGuess" autocomplete="off" autocorrect="off">
                 <input
                     id="new-guess"
                     placeholder="type a word then -->"
                     type="text"
                     autocomplete="off"
+                    autocorrect="off"
                     v-on:input="setGuess"
                     v-bind:disabled="winTime || gaveUpTime"
                     v-bind:value="guessValue"
