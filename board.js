@@ -26,7 +26,7 @@ const LEADER_HEADER_FIELDS_BY_TYPE = {
         { text: 'median time', key: 'timeMedian', formatter: getFormattedTime },
         { text: 'best # guesses', key: 'bestNumberOfGuesses' },
         { text: 'median # guesses', key: 'numberOfGuessesMedian' },
-        { text: 'first play date', key: 'firstSubmitDate' },
+        { text: 'first play date', key: 'firstSubmitDate', formatter: removeTimeFromISOString },
         { text: 'awards', key: 'awards' },
     ],
 };
@@ -393,6 +393,10 @@ function addAwards({ award, names }, leadersByName) {
 
 function passThrough(input) {
     return input;
+}
+
+function removeTimeFromISOString(dateString) {
+    return dateString.replace(/T.*/, '');
 }
 
 /* eslint-disable */
