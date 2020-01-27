@@ -266,7 +266,7 @@ function passThrough(input) {
 }
 
 function removeTimeFromISOString(dateString) {
-    return dateString.replace(/T.*/, '');
+    return dateString && dateString.replace(/T.*/, '');
 }
 
 /* eslint-disable */
