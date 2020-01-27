@@ -35,7 +35,7 @@ function makeRequest(url, onSuccess, onFailure, postData) {
     })
         .then((response) => {
             responseStatus = response.status;
-            return response.json();
+            return response.json(); // need to send JSON parsing through promise
         })
         .catch(onFailure)
         .then((json) => {

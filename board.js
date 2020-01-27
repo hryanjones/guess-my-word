@@ -142,6 +142,7 @@ function getLeaders(type) {
             );
         } catch (e) {
             console.error(e);
+            this.message = '';
             this.error = 'Sorry, having trouble dealing with the response from the leaderboard. Please let @hryanjones know.';
             return;
         }
