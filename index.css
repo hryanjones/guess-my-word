@@ -250,7 +250,7 @@ form {
 }
 
 .cell {
-    padding-right: 15px;
+    padding: 3px 7px;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: right;
