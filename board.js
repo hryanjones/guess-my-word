@@ -16,7 +16,7 @@ const LEADER_HEADER_FIELDS_BY_TYPE = {
     ],
     allTime: [
         { text: 'name', key: 'name' },
-        { text: 'weekly play rate', key: 'weeklyPlayRate' },
+        { text: 'weekly play rate', key: 'weeklyPlayRate', formatter: getTwoDecimalPlaces },
         { text: '# plays', key: 'playCount' },
         { text: 'best time', key: 'bestTime', formatter: getFormattedTime },
         { text: 'median time', key: 'timeMedian', formatter: getFormattedTime },
@@ -268,6 +268,10 @@ function passThrough(input) {
 
 function removeTimeFromISOString(dateString) {
     return dateString && dateString.replace(/T.*/, '');
+}
+
+function getTwoDecimalPlaces(number) {
+	return number && number.toFixed(2);
 }
 
 /* eslint-disable */
