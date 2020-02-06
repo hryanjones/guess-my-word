@@ -4,7 +4,13 @@ getTimezonelessLocalDate,
 UNKNOWN_LEADERBOARD_ERROR,
 makeLeaderboardRequest,
 getFormattedTime,
-validWordTrie
+validWordTrie,
+isToday,
+now,
+datesMatch,
+IS_LOCAL_STORAGE_AVAILABLE,
+SAVED_GAMES_KEYS_BY_DIFFICULTY,
+getSavedGameByDifficulty
 */
 
 
@@ -54,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 beforeGuesses: [],
                 username: '',
                 usernamesUsed: [],
-                isLocalStorageAvailable: null,
+                isLocalStorageAvailable: IS_LOCAL_STORAGE_AVAILABLE, // FIXME don't need this on state
                 isReplay: false,
 
                 leaderboardRequest: null,
@@ -105,10 +111,6 @@ function reset(options) {
 
     this.guessValue = '';
 
-    if (typeof isLocalStorageAvailable !== 'boolean') {
-        this.isLocalStorageAvailable = testLocalStorage();
-    }
-
     resetStats(this);
     loadStoredUserNames(this);
     // reset stats
@@ -126,10 +128,6 @@ function reset(options) {
 
 const LAST_SET_DIFFICULTY_KEY = 'lastSetDifficultyToday';
 const RECENT_FIRST_PLAYED_DIFFICULTY = 'recentFirstPlayedDifficulty';
-const SAVED_GAMES_KEYS_BY_DIFFICULTY = {
-    normal: 'savedGame_normal',
-    hard: 'savedGame_hard',
-};
 const USERNAMES_USED_KEY = 'usernamesUsed';
 
 function resetStats(app) {
@@ -176,31 +174,6 @@ function isSameDay() {
         const savedStartTime = new Date(savedGame.startTime);
         return isToday(savedStartTime);
     });
-}
-
-function isToday(date) {
-    return datesMatch(now(), date);
-}
-
-function now() {
-    return new Date();
-}
-
-function datesMatch(date1, date2) { // ignores time
-    return date1.getFullYear() === date2.getFullYear()
-        && date1.getMonth() === date2.getMonth()
-        && date1.getDate() === date2.getDate();
-}
-
-function getSavedGameByDifficulty(difficulty) {
-    const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
-    const savedGameJSON = difficulty && localStorage.getItem(savedGameKey);
-    try {
-        return savedGameJSON && JSON.parse(savedGameJSON);
-    } catch (e) {
-        localStorage.removeItem(savedGameKey);
-    }
-    return undefined;
 }
 
 function setStatsFromExistingGame(app, savedGame, difficulty) {
@@ -271,18 +244,6 @@ function generateGuessList(beforeOrAfter, guesses, word) {
             return guess > word;
         }
         return guess < word;
-    }
-}
-
-function testLocalStorage() {
-    // stolen from https://stackoverflow.com/questions/16427636/check-if-localstorage-is-available
-    const test = 'test';
-    try {
-        localStorage.setItem(test, test);
-        localStorage.removeItem(test);
-        return true;
-    } catch (e) {
-        return false;
     }
 }
 

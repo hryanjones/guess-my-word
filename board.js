@@ -5,6 +5,9 @@ UNKNOWN_LEADERBOARD_ERROR,
 makeLeaderboardRequest,
 getFormattedTime,
 urlParams,
+IS_LOCAL_STORAGE_AVAILABLE,
+getSavedGameByDifficulty,
+isToday,
 */
 
 const LEADER_HEADER_FIELDS_BY_TYPE = {
@@ -53,6 +56,7 @@ const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
 
 const difficultyFromURL = urlParams.get('difficulty');
 const searchFromURL = urlParams.get('search');
+const LOCAL_BAD_NAMES_KEY = 'guess-my-word-leaderboard-bad-names';
 
 const app = new Vue({ // eslint-disable-line no-unused-vars
     el: '#leaderboard-container',
@@ -67,8 +71,8 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         filteredLeaders: null,
         showInappropriateNames: false,
         reportMode: false,
-        reportsEnabled: urlParams.get('reports') === '', // FIXME this should be based on whether someone has successfully played today
-        localBadNames: {},
+        reportsEnabled: false,
+        localBadNames: loadSavedLocalBadNames(),
     },
     created() {
         this.getLeaders(this.leadersType);
@@ -120,12 +124,13 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         reportName(name) {
             if (!confirm(`Really report "${name}" as inappropriate?
 
-(Note: this name will be immediately hidden for you, and hidden for others with enough reports.`)) {
+(Note: this name will be immediately hidden for you, and hidden for others with enough reports.)`)) {
                 return;
             }
 
             this.localBadNames[name] = !this.localBadNames[name];
             this.reportMode = false;
+            saveLocalBadNames(this.localBadNames);
             hackToReRenderList(this.leaders);
         },
         isBadName(record) {
@@ -138,6 +143,22 @@ function hackToReRenderList(leaders) {
     // HACK ALERT: modify leaders to get the list to re-render
     leaders.push(EMPTY_LEADER);
     leaders.pop();
+}
+
+function loadSavedLocalBadNames() {
+    if (!IS_LOCAL_STORAGE_AVAILABLE) return {};
+    const localBadNames = localStorage.getItem(LOCAL_BAD_NAMES_KEY);
+    try {
+        return (localBadNames && JSON.parse(localBadNames)) || {};
+    } catch (e) {
+        localStorage.removeItem(LOCAL_BAD_NAMES_KEY);
+    }
+    return {};
+}
+
+function saveLocalBadNames(badNames) {
+    if (!IS_LOCAL_STORAGE_AVAILABLE) return;
+    localStorage.setItem(LOCAL_BAD_NAMES_KEY, JSON.stringify(badNames));
 }
 
 const throttledHandleScroll = throttle(handleScroll, 100);
@@ -186,6 +207,7 @@ function getLeaders(type) {
             this.leaders = [EMPTY_LEADER];
         } else {
             this.onSearch();
+            this.reportsEnabled = determineIfCanReportBadNames(this.difficulty, type);
             this.message = '';
         }
     };
@@ -199,6 +221,16 @@ function getLeaders(type) {
     this.message = 'loading...';
     this.leaders = [EMPTY_LEADER];
     makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
+}
+
+function determineIfCanReportBadNames(difficulty, type) {
+    if (type === 'allTime') return false; // can't report on all time board
+    const savedGame = getSavedGameByDifficulty(difficulty);
+    return Boolean(
+        savedGame
+        && isToday(savedGame.submitTime)
+        && urlParams.get('reports') === '', // FIXME remove feature flag
+    );
 }
 
 const OPPOSITE_SORT_DIRECTION = {
@@ -305,7 +337,7 @@ function removeTimeFromISOString(dateString) {
 }
 
 function getTwoDecimalPlaces(number) {
-	return number && number.toFixed(2);
+    return number && number.toFixed(2);
 }
 
 /* eslint-disable */

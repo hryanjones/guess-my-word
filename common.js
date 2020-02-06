@@ -92,3 +92,53 @@ function getFormattedTime(milliseconds) {
 
     return formattedTime.join(' ') || '0s';
 }
+
+function isToday(date) {
+    if (typeof date === 'string') {
+        date = new Date(date);
+    }
+    return datesMatch(now(), date);
+}
+
+function now() {
+    return new Date();
+}
+
+function datesMatch(date1, date2) { // ignores time
+    return date1.getFullYear() === date2.getFullYear()
+        && date1.getMonth() === date2.getMonth()
+        && date1.getDate() === date2.getDate();
+}
+
+// # Saved games
+
+const IS_LOCAL_STORAGE_AVAILABLE = testLocalStorage();
+
+function testLocalStorage() {
+    // stolen from https://stackoverflow.com/questions/16427636/check-if-localstorage-is-available
+    const test = 'test';
+    try {
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+const SAVED_GAMES_KEYS_BY_DIFFICULTY = {
+    normal: 'savedGame_normal',
+    hard: 'savedGame_hard',
+};
+
+function getSavedGameByDifficulty(difficulty) {
+    if (!IS_LOCAL_STORAGE_AVAILABLE) return undefined;
+    const savedGameKey = SAVED_GAMES_KEYS_BY_DIFFICULTY[difficulty];
+    const savedGameJSON = difficulty && localStorage.getItem(savedGameKey);
+    try {
+        return savedGameJSON && JSON.parse(savedGameJSON);
+    } catch (e) {
+        localStorage.removeItem(savedGameKey);
+    }
+    return undefined;
+}
