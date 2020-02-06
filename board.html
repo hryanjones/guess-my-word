@@ -99,7 +99,7 @@
                     <span v-if="reportMode && isBadName(item)">(hidden)</span>
 
                     {{!reportMode && (!isBadName(item) || showInappropriateNames) ? item.name : ''}}
-                    <button v-if="!isBadName(item) && reportMode" v-on:click="reportName(item.name)">
+                    <button v-if="!isBadName(item) && reportMode && item.name !== lastUsedName" v-on:click="reportName(item.name)">
                         🚩 report "<i>{{item.name}}</i>"
                     </button>
                 </div>

@@ -10,7 +10,10 @@ now,
 datesMatch,
 IS_LOCAL_STORAGE_AVAILABLE,
 SAVED_GAMES_KEYS_BY_DIFFICULTY,
-getSavedGameByDifficulty
+getSavedGameByDifficulty,
+USERNAMES_USED_KEY,
+getStoredUserNames,
+urlParams,
 */
 
 
@@ -128,7 +131,6 @@ function reset(options) {
 
 const LAST_SET_DIFFICULTY_KEY = 'lastSetDifficultyToday';
 const RECENT_FIRST_PLAYED_DIFFICULTY = 'recentFirstPlayedDifficulty';
-const USERNAMES_USED_KEY = 'usernamesUsed';
 
 function resetStats(app) {
     if (!app.isLocalStorageAvailable) {
@@ -248,17 +250,12 @@ function generateGuessList(beforeOrAfter, guesses, word) {
 }
 
 function loadStoredUserNames(app) {
-    if (!app.isLocalStorageAvailable || app.usernamesUsed.length > 0) return;
-    const usernamesJSON = localStorage.getItem(USERNAMES_USED_KEY);
-    let usernames = [];
-    try {
-        usernames = (usernamesJSON && JSON.parse(usernamesJSON)) || [];
-    } finally {
-        app.usernamesUsed = usernames || [];
-        const lastUsedName = app.usernamesUsed[0];
-        if (lastUsedName && !app.username) {
-            app.username = lastUsedName;
-        }
+    if (app.usernamesUsed.length > 0) return;
+    const usernames = getStoredUserNames();
+    app.usernamesUsed = usernames || [];
+    const lastUsedName = app.usernamesUsed[0];
+    if (lastUsedName && !app.username) {
+        app.username = lastUsedName;
     }
 }
 

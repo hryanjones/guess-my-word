@@ -10,8 +10,8 @@ const BOARD_SERVER = useProdBackend
 const UNKNOWN_LEADERBOARD_ERROR = 'Sorry, the completion board is having trouble right now. Please try again in a little bit. (contact @hryanjones if it persists)';
 
 
-function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData) {
-    const url = `${BOARD_SERVER}/leaderboard/${timezonelessDate}/wordlist/${wordlist}`;
+function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData, extraURLPath = '') {
+    const url = `${BOARD_SERVER}/leaderboard/${timezonelessDate}/wordlist/${wordlist}${extraURLPath}`;
     return makeRequest(url, onSuccess, onFailure, postData);
 }
 
@@ -110,7 +110,7 @@ function datesMatch(date1, date2) { // ignores time
         && date1.getDate() === date2.getDate();
 }
 
-// # Saved games
+// # Local Storage Persistence
 
 const IS_LOCAL_STORAGE_AVAILABLE = testLocalStorage();
 
@@ -141,4 +141,16 @@ function getSavedGameByDifficulty(difficulty) {
         localStorage.removeItem(savedGameKey);
     }
     return undefined;
+}
+
+const USERNAMES_USED_KEY = 'usernamesUsed';
+
+function getStoredUserNames() {
+    if (!IS_LOCAL_STORAGE_AVAILABLE) return [];
+    const usernamesJSON = localStorage.getItem(USERNAMES_USED_KEY);
+    try {
+        return usernamesJSON && JSON.parse(usernamesJSON) || [];
+    } catch (error) {
+        return [];
+    }
 }

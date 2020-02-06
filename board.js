@@ -8,6 +8,8 @@ urlParams,
 IS_LOCAL_STORAGE_AVAILABLE,
 getSavedGameByDifficulty,
 isToday,
+now,
+getStoredUserNames,
 */
 
 const LEADER_HEADER_FIELDS_BY_TYPE = {
@@ -57,6 +59,7 @@ const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
 const difficultyFromURL = urlParams.get('difficulty');
 const searchFromURL = urlParams.get('search');
 const LOCAL_BAD_NAMES_KEY = 'guess-my-word-leaderboard-bad-names';
+const REPORT_DATE_KEY = 'guess-my-word-leaderboard-recent-report-dates';
 
 const app = new Vue({ // eslint-disable-line no-unused-vars
     el: '#leaderboard-container',
@@ -73,6 +76,7 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         reportMode: false,
         reportsEnabled: false,
         localBadNames: loadSavedLocalBadNames(),
+        lastUsedName: getStoredUserNames()[0],
     },
     created() {
         this.getLeaders(this.leadersType);
@@ -122,15 +126,16 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
             hackToReRenderList(this.leaders);
         },
         reportName(name) {
-            if (!confirm(`Really report "${name}" as inappropriate?
+            if (!confirm(`Really report "${name}" as offensive?
 
-(Note: this name will be immediately hidden for you, and hidden for others with enough reports.)`)) {
+(Note: this name will be immediately and ALWAYS hidden for you, and hidden for others with enough reports.)`)) {
                 return;
             }
 
             this.localBadNames[name] = !this.localBadNames[name];
             this.reportMode = false;
             saveLocalBadNames(this.localBadNames);
+            reportBadName(name, this.difficulty, this.lastUsedName);
             hackToReRenderList(this.leaders);
         },
         isBadName(record) {
@@ -160,6 +165,52 @@ function saveLocalBadNames(badNames) {
     if (!IS_LOCAL_STORAGE_AVAILABLE) return;
     localStorage.setItem(LOCAL_BAD_NAMES_KEY, JSON.stringify(badNames));
 }
+
+function reportBadName(badName, wordlist, reporterName) {
+    if (reachedReportingLimit()) return;
+    makeLeaderboardRequest(
+        getTimezonelessLocalDate(new Date()),
+        wordlist,
+        noop,
+        noop,
+        { badName, reporterName },
+        '/badname',
+    );
+    addToReportCount();
+}
+
+const REPORT_TIMEOUT_IN_MS = 12 /* hours */ * 60 /* min/hour */ * 60 /* sec/min */ * 1000; /* ms */
+const NUMBER_OF_REPORTS_ALLOWED_IN_ONE_DAY = 5;
+
+function reachedReportingLimit() {
+    const recentReports = getRecentReports(); // TODO maybe shouldn't fetch from localstorage every time?
+    if (recentReports.length < NUMBER_OF_REPORTS_ALLOWED_IN_ONE_DAY) {
+        return false;
+    }
+    const oldestReportDate = new Date(recentReports[recentReports.length - 1]);
+    return +oldestReportDate > (+now() - REPORT_TIMEOUT_IN_MS);
+}
+
+function addToReportCount() {
+    if (!IS_LOCAL_STORAGE_AVAILABLE) return;
+    let recentReports = getRecentReports();
+    recentReports.unshift(new Date());
+    recentReports = recentReports.slice(0, NUMBER_OF_REPORTS_ALLOWED_IN_ONE_DAY);
+    localStorage.setItem(REPORT_DATE_KEY, JSON.stringify(recentReports));
+}
+
+function getRecentReports() {
+    if (!IS_LOCAL_STORAGE_AVAILABLE) return [];
+    const json = localStorage.getItem(REPORT_DATE_KEY);
+    try { // FIXME need to centralize this and stop copy-pastaing it
+        return (json && JSON.parse(json)) || [];
+    } catch (e) {
+        localStorage.removeItem(REPORT_DATE_KEY);
+    }
+    return [];
+}
+
+function noop() {}
 
 const throttledHandleScroll = throttle(handleScroll, 100);
 
@@ -207,8 +258,8 @@ function getLeaders(type) {
             this.leaders = [EMPTY_LEADER];
         } else {
             this.onSearch();
-            this.reportsEnabled = determineIfCanReportBadNames(this.difficulty, type);
             this.message = '';
+            this.reportsEnabled = determineIfCanReportBadNames(this.difficulty, type);
         }
     };
 
@@ -226,11 +277,7 @@ function getLeaders(type) {
 function determineIfCanReportBadNames(difficulty, type) {
     if (type === 'allTime') return false; // can't report on all time board
     const savedGame = getSavedGameByDifficulty(difficulty);
-    return Boolean(
-        savedGame
-        && isToday(savedGame.submitTime)
-        && urlParams.get('reports') === '', // FIXME remove feature flag
-    );
+    return Boolean(savedGame && savedGame.submitTime && isToday(savedGame.submitTime));
 }
 
 const OPPOSITE_SORT_DIRECTION = {
