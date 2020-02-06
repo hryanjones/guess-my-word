@@ -65,6 +65,10 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         sortConfig: DEFAULT_SORT_CONFIG_BY_LEADER_TYPE.normal,
         leaderSearch: searchFromURL || '',
         filteredLeaders: null,
+        showInappropriateNames: false,
+        reportMode: false,
+        reportsEnabled: urlParams.get('reports') === '', // FIXME this should be based on whether someone has successfully played today
+        localBadNames: {},
     },
     created() {
         this.getLeaders(this.leadersType);
@@ -103,8 +107,38 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         areLeadersLoaded() {
             return this.leaders[0] !== EMPTY_LEADER;
         },
+        toggleBadNames() {
+            this.showInappropriateNames = !this.showInappropriateNames;
+            hackToReRenderList(this.leaders);
+        },
+        toggleReportMode(e) {
+            this.reportMode = !this.reportMode;
+            e.stopPropagation(); // don't change leaderboard sort
+            e.preventDefault();
+            hackToReRenderList(this.leaders);
+        },
+        reportName(name) {
+            if (!confirm(`Really report "${name}" as inappropriate?
+
+(Note: this name will be immediately hidden for you, and hidden for others with enough reports.`)) {
+                return;
+            }
+
+            this.localBadNames[name] = !this.localBadNames[name];
+            this.reportMode = false;
+            hackToReRenderList(this.leaders);
+        },
+        isBadName(record) {
+            return record.badName || this.localBadNames[record.name];
+        },
     },
 });
+
+function hackToReRenderList(leaders) {
+    // HACK ALERT: modify leaders to get the list to re-render
+    leaders.push(EMPTY_LEADER);
+    leaders.pop();
+}
 
 const throttledHandleScroll = throttle(handleScroll, 100);
 

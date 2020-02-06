@@ -58,7 +58,25 @@
             <div id="leaderboard-header-top"></div>
             <div v-if="areLeadersLoaded()" class="header row" id="leaderboard-header">
                 <div
-                    v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]"
+                    v-on:click="changeLeaderSort('name')"
+                    class="name-cell cell"
+                >
+                    <span v-if="sortConfig.key === 'name'" style="margin-left: 5px;">
+                        {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
+                    </span>
+                    {{LEADER_HEADER_FIELDS_BY_TYPE[leadersType][0].text}}
+                    <button v-if="reportsEnabled" v-on:click="toggleReportMode">
+                        <input
+                            type="checkbox"
+                            v-if="reportMode"
+                            style="pointer-events: none;"
+                            checked
+                        />
+                        🚩
+                    </button>
+                </div>
+                <div
+                    v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType].slice(1)"
                     v-on:click="changeLeaderSort(field.key)"
                     :class="field.key + '-cell cell'"
                 >
@@ -72,7 +90,21 @@
         <template v-slot="{item, index, active}">
             <dynamic-scroller-item :item="item" :active="active" :data-index="index" class="row">
                 <div
-                    v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType]"
+                    :class="'name-cell cell ' + (index % 2 === 0 ? 'even' : '')"
+                    title="name"
+                >
+                    <button v-if="!reportMode && isBadName(item)" v-on:click="toggleBadNames">
+                        {{showInappropriateNames ? 'hide' : '⚠ show bad names'}}
+                    </button>
+                    <span v-if="reportMode && isBadName(item)">(hidden)</span>
+
+                    {{!reportMode && (!isBadName(item) || showInappropriateNames) ? item.name : ''}}
+                    <button v-if="!isBadName(item) && reportMode" v-on:click="reportName(item.name)">
+                        🚩 report "<i>{{item.name}}</i>"
+                    </button>
+                </div>
+                <div
+                    v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType].slice(1)"
                     :class="field.key + '-cell cell ' + (index % 2 === 0 ? 'even' : '')"
                     :title="item[field.key]"
                 >
