@@ -270,6 +270,12 @@ form {
     background-color: #EEE;
 }
 
+.my-name {
+    font-weight: bold;
+    font-style: italic;
+    background-color: #FFB;
+}
+
 .cell:first-child,
 .cell:last-child { /* name and award should be left aligned other fields, which are number should be right aligned */
     text-align: left;

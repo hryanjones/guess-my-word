@@ -76,7 +76,7 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         reportMode: false,
         reportsEnabled: false,
         localBadNames: loadSavedLocalBadNames(),
-        lastUsedName: getStoredUserNames()[0],
+        usedNames: getStoredUserNames(),
     },
     created() {
         this.getLeaders(this.leadersType);
