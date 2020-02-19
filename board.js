@@ -91,6 +91,7 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         changeLeaderSort,
         toggleLeaderType() {
             this.leadersType = this.leadersType === 'normal' ? 'allTime' : 'normal';
+            this.reportMode = false;
             this.sortConfig = DEFAULT_SORT_CONFIG_BY_LEADER_TYPE[this.leadersType];
             this.getLeaders(this.leadersType);
         },
