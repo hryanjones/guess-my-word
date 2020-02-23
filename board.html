@@ -94,7 +94,7 @@
                 :data-index="index"
                 :class="'row ' + (index % 2 === 0 ? 'even ' : '') + (usedNames.includes(item.name) ? 'my-name' : '')"
             >
-                <div class="name-cell cell" title="name">
+                <div class="name-cell cell" :title="item.name">
                     <button v-if="!reportMode && isBadName(item)" v-on:click="toggleBadNames">
                         {{showInappropriateNames ? 'hide' : '⚠ show bad names'}}
                     </button>
