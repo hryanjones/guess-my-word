@@ -2,7 +2,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const useProdBackend = urlParams.get('useProd') === '' || window.location.hostname === 'hryanjones.com';
 
 const BOARD_SERVER = useProdBackend
-    ? 'https://home.hryanjones.com'
+    // ? 'https://home.hryanjones.com'
+    ? 'https://ec2.hryanjones.com'
     : 'http://192.168.0.144:8080';
 // const BOARD_SERVER = 'https://hryanjones.builtwithdark.com';
 // const BAD_NAMES_SERVER = 'https://hryanjones.builtwithdark.com/gmw/bad-names';
