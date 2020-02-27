@@ -50,24 +50,26 @@ document.addEventListener('DOMContentLoaded', () => {
         vueApp = new Vue({
             el: '#container',
             data: {
-                guesses: [],
                 difficulty: null,
-                startTime: null,
-                winTime: null,
-                gaveUpTime: null,
-                submitTime: null,
                 word: undefined,
                 guessValue: '',
+                startTime: null,
+                guesses: [],
+                afterGuesses: [], // derived from guesses and word
+                beforeGuesses: [], // derived from guesses and word
+                winTime: null,
+                isReplay: false, // if we've loaded a game that's already been played (always today's game)
                 guessError: '',
-                afterGuesses: [],
-                beforeGuesses: [],
-                username: '',
-                usernamesUsed: [],
-                isLocalStorageAvailable: IS_LOCAL_STORAGE_AVAILABLE, // FIXME don't need this on state
-                isReplay: false,
+                gaveUpTime: null,
 
+                submitTime: null,
+                username: '', // for submitting to the leaderboard
+                areGuessesPublic: null, // set in .reset
                 leaderboardRequest: null,
                 leaderSubmitError: '',
+                usernamesUsed: [],
+
+                isLocalStorageAvailable: IS_LOCAL_STORAGE_AVAILABLE, // FIXME don't need this on state
 
                 // Date picker state
                 showDatePicker: false,
@@ -87,6 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitToLeaderboard,
                 setUsername(event) {
                     this.username = event.target.value;
+                },
+                toggleGuessesPublic() {
+                    if (this.areGuessesPublic) {
+                        this.areGuessesPublic = false;
+                    } else {
+                        this.areGuessesPublic = getAreGuessesPublicDefault() || true;
+                    }
                 },
                 shouldShowSubmitName,
 
@@ -122,6 +131,8 @@ function reset(options) {
     this.leaders = null;
     this.leaderSubmitError = null;
     this.leaderboardRequest = null;
+
+    this.areGuessesPublic = getAreGuessesPublicDefault();
 
     if (!options || !options.stealFocus) return;
     Vue.nextTick(() => {
@@ -429,6 +440,25 @@ function shouldShowSubmitName() {
         && isPlayDateToday(this.playDate);
 }
 
+const ARE_GUESSES_PUBLIC_KEY = 'guess-my-word_areGuessesPublic';
+const FIRST_TIME_MAKING_GUESSES_PUBLIC = 'First time making guesses public -> ask';
+function getAreGuessesPublicDefault() {
+    if (!IS_LOCAL_STORAGE_AVAILABLE) {
+        return true;
+    }
+    const savedValue = localStorage.getItem(ARE_GUESSES_PUBLIC_KEY);
+    if (!savedValue) {
+        return FIRST_TIME_MAKING_GUESSES_PUBLIC;
+    }
+    return savedValue === 'true';
+}
+
+function saveAreGuessesPublic(value) {
+    if (IS_LOCAL_STORAGE_AVAILABLE) {
+        localStorage.setItem(ARE_GUESSES_PUBLIC_KEY, value);
+    }
+}
+
 // Utilities
 
 
@@ -461,10 +491,23 @@ function getDOY(date) {
 
 function submitToLeaderboard() {
     const name = this.username;
+    let { areGuessesPublic } = this;
+    if (
+        areGuessesPublic === FIRST_TIME_MAKING_GUESSES_PUBLIC
+        && !confirm("Just double checking that you don't mind your guesses being public? (won't ask again)")
+    ) {
+        return;
+    }
+
+    areGuessesPublic = Boolean(areGuessesPublic);
+    this.areGuessesPublic = areGuessesPublic; // in case of submit error no-re-ask
+    saveAreGuessesPublic(areGuessesPublic);
+
     const postData = {
         name,
         time: this.winTime - this.startTime,
         guesses: this.guesses,
+        areGuessesPublic,
     };
     const timezonelessDate = getTimezonelessLocalDate(this.startTime);
     const submitTime = now();

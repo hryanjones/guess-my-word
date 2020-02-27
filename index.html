@@ -153,6 +153,14 @@
                     value="submit"
                     v-bind:disabled="leaderboardRequest"
                 />
+                <br /><label style="margin-top: 5px; font-weight: bold; display: block; cursor: pointer;">
+                    <input
+                        type="checkbox"
+                        v-bind:checked="areGuessesPublic"
+                        v-on:change="toggleGuessesPublic"
+                    />
+                    allow my guesses to be public
+                </label>
                 <div class="error" v-if="leaderSubmitError" style="margin: 5px 0px;">
                     {{leaderSubmitError}}
                 </div>
