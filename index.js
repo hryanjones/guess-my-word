@@ -310,6 +310,7 @@ function saveGame({
     submitTime,
     guesses,
     playDate,
+    username,
 }) {
     if (!isLocalStorageAvailable || !isPlayDateToday(playDate)) {
         return;
@@ -324,6 +325,7 @@ function saveGame({
         gaveUpTime,
         submitTime,
         guesses,
+        username,
     }));
 }
 

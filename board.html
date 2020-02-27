@@ -65,7 +65,7 @@
                         {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
                     </span>
                     {{LEADER_HEADER_FIELDS_BY_TYPE[leadersType][0].text}}
-                    <button v-if="reportsEnabled" v-on:click="toggleReportMode">
+                    <button v-if="hasPlayedThisBoardToday" v-on:click="toggleReportMode">
                         <input
                             type="checkbox"
                             v-if="reportMode"

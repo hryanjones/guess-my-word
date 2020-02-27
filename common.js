@@ -11,8 +11,8 @@ const BOARD_SERVER = useProdBackend
 const UNKNOWN_LEADERBOARD_ERROR = 'Sorry, the completion board is having trouble right now. Please try again in a little bit. (contact @hryanjones if it persists)';
 
 
-function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData, extraURLPath = '') {
-    const url = `${BOARD_SERVER}/leaderboard/${timezonelessDate}/wordlist/${wordlist}${extraURLPath}`;
+function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData, extraURL = '') {
+    const url = `${BOARD_SERVER}/leaderboard/${timezonelessDate}/wordlist/${wordlist}${extraURL}`;
     return makeRequest(url, onSuccess, onFailure, postData);
 }
 

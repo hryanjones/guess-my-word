@@ -18,6 +18,7 @@ const LEADER_HEADER_FIELDS_BY_TYPE = {
         { text: '# guesses', key: 'numberOfGuesses' },
         { text: 'time', key: 'time', formatter: getFormattedTime },
         { text: 'awards', key: 'awards' },
+        { text: 'guesses', key: 'guesses', formatter: joinWithSpaces },
     ],
     allTime: [
         { text: 'name', key: 'name' },
@@ -74,7 +75,7 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         filteredLeaders: null,
         showInappropriateNames: false,
         reportMode: false,
-        reportsEnabled: false,
+        hasPlayedThisBoardToday: false,
         localBadNames: loadSavedLocalBadNames(),
         usedNames: getStoredUserNames(),
     },
@@ -238,6 +239,7 @@ function getLeaders(type) {
     } else {
         date = getTimezonelessLocalDate(new Date());
     }
+    this.hasPlayedThisBoardToday = determineIfPlayedThisBoardToday(this.difficulty, type);
 
     const onSuccess = (json) => {
         const { key, direction } = this.sortConfig;
@@ -260,7 +262,6 @@ function getLeaders(type) {
         } else {
             this.onSearch();
             this.message = '';
-            this.reportsEnabled = determineIfCanReportBadNames(this.difficulty, type);
         }
     };
 
@@ -272,13 +273,22 @@ function getLeaders(type) {
 
     this.message = 'loading...';
     this.leaders = [EMPTY_LEADER];
-    makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure);
+    const queryString = getQueryStringForIncludingGuesses(this.hasPlayedThisBoardToday, this.difficulty);
+    makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure, null, queryString);
 }
 
-function determineIfCanReportBadNames(difficulty, type) {
+function determineIfPlayedThisBoardToday(difficulty, type) {
     if (type === 'allTime') return false; // can't report on all time board
     const savedGame = getSavedGameByDifficulty(difficulty);
     return Boolean(savedGame && savedGame.submitTime && isToday(savedGame.submitTime));
+}
+
+function getQueryStringForIncludingGuesses(hasPlayed, difficulty) {
+    const savedGame = getSavedGameByDifficulty(difficulty);
+    if (!hasPlayed || !savedGame) return '';
+    const { username, guesses } = savedGame;
+    const [firstGuess] = guesses;
+    return `?name=${username}&key=${firstGuess}`;
 }
 
 const OPPOSITE_SORT_DIRECTION = {
@@ -386,6 +396,10 @@ function removeTimeFromISOString(dateString) {
 
 function getTwoDecimalPlaces(number) {
     return number && number.toFixed(2);
+}
+
+function joinWithSpaces(array) {
+    return array.join(' '),
 }
 
 /* eslint-disable */
