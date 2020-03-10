@@ -213,6 +213,9 @@ form {
 {
     flex-basis: 40%;
 }
+.leaderboard-table .row .cell.guesses-cell {
+    flex-basis: 100%; /* "highest weekly rate" is long give a little extra room for it */
+}
 .leaderboard-table.allTime .row .cell.awards-cell {
     flex-basis: 50%; /* "highest weekly rate" is long give a little extra room for it */
 }
@@ -222,7 +225,9 @@ form {
     max-width: 600px;
 }
 .leaderboard-table.allTime .row,
-.leaderboard-table.allTime .vue-recycle-scroller__item-view {
+.leaderboard-table.allTime .vue-recycle-scroller__item-view,
+.leaderboard-table.has-guesses .row,
+.leaderboard-table.has-guesses .vue-recycle-scroller__item-view  {
     min-width: 900px;
     max-width: 1000px;
 }
@@ -276,8 +281,9 @@ form {
     background-color: #FFB;
 }
 
-.cell:first-child,
-.cell:last-child { /* name and award should be left aligned other fields, which are number should be right aligned */
+.cell.name-cell,
+.cell.awards-cell,
+.cell.guesses-cell { /* name and award should be left aligned other fields, which are number should be right aligned */
     text-align: left;
     white-space: unset;
 }

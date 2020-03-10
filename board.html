@@ -18,7 +18,7 @@
         :items="filteredLeaders || leaders"
         :min-item-size="18.5"
         key-field="name"
-        :class="'leaderboard-table ' + leadersType"
+        :class="'leaderboard-table ' + (hasPlayedThisBoardToday ? 'has-guesses' : '') + leadersType"
         prerender="4"
     >
         <template #before>
@@ -121,9 +121,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
 <script src="./vue-virtual-scroller.min.js"></script>
-<script src="common.1.js"></script>
-<script src="index.1.js"></script><!-- FIXME can get rid of this? -->
-<script src="board.1.js"></script>
+<script src="common.js?version=1"></script>
+<script src="index.js?version=1"></script><!-- FIXME can get rid of this? -->
+<script src="board.js?version=1"></script>
 
 <script src="/assets/js/googleAnalytics.js"></script>
 </body>

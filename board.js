@@ -62,12 +62,19 @@ const searchFromURL = urlParams.get('search');
 const LOCAL_BAD_NAMES_KEY = 'guess-my-word-leaderboard-bad-names';
 const REPORT_DATE_KEY = 'guess-my-word-leaderboard-recent-report-dates';
 
+const initialDifficulty = difficultyFromURL || 'normal';
+const hasPlayedThisBoardToday = determineIfPlayedThisBoardToday(initialDifficulty);
+if (!hasPlayedThisBoardToday) {
+    // remove guesses column if we won't have the data
+    LEADER_HEADER_FIELDS_BY_TYPE.normal = LEADER_HEADER_FIELDS_BY_TYPE.normal.filter(h => h.key !== 'guesses');
+}
+
 const app = new Vue({ // eslint-disable-line no-unused-vars
     el: '#leaderboard-container',
     data: {
         leadersType: 'normal',
         leaders: [EMPTY_LEADER],
-        difficulty: difficultyFromURL || 'normal',
+        difficulty: initialDifficulty,
         message: '',
         error: '',
         sortConfig: DEFAULT_SORT_CONFIG_BY_LEADER_TYPE.normal,
@@ -75,7 +82,7 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         filteredLeaders: null,
         showInappropriateNames: false,
         reportMode: false,
-        hasPlayedThisBoardToday: false,
+        hasPlayedThisBoardToday,
         localBadNames: loadSavedLocalBadNames(),
         usedNames: getStoredUserNames(),
     },
@@ -399,7 +406,7 @@ function getTwoDecimalPlaces(number) {
 }
 
 function joinWithSpaces(array) {
-    return array.join(' '),
+    return array && array.join && array.join(' ');
 }
 
 /* eslint-disable */
