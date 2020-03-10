@@ -62,19 +62,12 @@ const searchFromURL = urlParams.get('search');
 const LOCAL_BAD_NAMES_KEY = 'guess-my-word-leaderboard-bad-names';
 const REPORT_DATE_KEY = 'guess-my-word-leaderboard-recent-report-dates';
 
-const initialDifficulty = difficultyFromURL || 'normal';
-const hasPlayedThisBoardToday = determineIfPlayedThisBoardToday(initialDifficulty);
-if (!hasPlayedThisBoardToday) {
-    // remove guesses column if we won't have the data
-    LEADER_HEADER_FIELDS_BY_TYPE.normal = LEADER_HEADER_FIELDS_BY_TYPE.normal.filter(h => h.key !== 'guesses');
-}
-
 const app = new Vue({ // eslint-disable-line no-unused-vars
     el: '#leaderboard-container',
     data: {
         leadersType: 'normal',
         leaders: [EMPTY_LEADER],
-        difficulty: initialDifficulty,
+        difficulty: difficultyFromURL || 'normal',
         message: '',
         error: '',
         sortConfig: DEFAULT_SORT_CONFIG_BY_LEADER_TYPE.normal,
@@ -82,26 +75,27 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         filteredLeaders: null,
         showInappropriateNames: false,
         reportMode: false,
-        hasPlayedThisBoardToday,
+        hasPlayedThisBoardToday: null, // determined in getLeaders
         localBadNames: loadSavedLocalBadNames(),
         usedNames: getStoredUserNames(),
+        leaderHeaderFields: null, // determined in getLeaders
     },
     created() {
-        this.getLeaders(this.leadersType);
+        this.getLeaders();
     },
     methods: {
         getLeaders,
         setDifficulty(e) {
             const newDifficulty = e.target.value;
             this.difficulty = newDifficulty;
-            this.getLeaders(this.leadersType);
+            this.getLeaders();
         },
         changeLeaderSort,
         toggleLeaderType() {
             this.leadersType = this.leadersType === 'normal' ? 'allTime' : 'normal';
             this.reportMode = false;
             this.sortConfig = DEFAULT_SORT_CONFIG_BY_LEADER_TYPE[this.leadersType];
-            this.getLeaders(this.leadersType);
+            this.getLeaders();
         },
         updateLeaderSearch(e) {
             this.leaderSearch = e.target.value;
@@ -239,14 +233,21 @@ function handleScroll() {
     if (header.style.position !== 'static') header.style.position = 'static';
 }
 
-function getLeaders(type) {
+function getLeaders() {
     let date;
+    const type = this.leadersType;
     if (type === 'allTime') {
         date = 'ALL';
     } else {
         date = getTimezonelessLocalDate(new Date());
     }
+
     this.hasPlayedThisBoardToday = determineIfPlayedThisBoardToday(this.difficulty, type);
+    this.leaderHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE[type];
+    if (!this.hasPlayedThisBoardToday && type === 'normal') {
+        // remove guesses column if we won't have the data
+        this.leaderHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE.normal.filter(h => h.key !== 'guesses');
+    }
 
     const onSuccess = (json) => {
         const { key, direction } = this.sortConfig;

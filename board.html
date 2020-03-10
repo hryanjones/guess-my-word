@@ -64,7 +64,7 @@
                     <span v-if="sortConfig.key === 'name'" style="margin-left: 5px;">
                         {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
                     </span>
-                    {{LEADER_HEADER_FIELDS_BY_TYPE[leadersType][0].text}}
+                    {{leaderHeaderFields[0].text}}
                     <button v-if="hasPlayedThisBoardToday" v-on:click="toggleReportMode">
                         <input
                             type="checkbox"
@@ -76,7 +76,7 @@
                     </button>
                 </div>
                 <div
-                    v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType].slice(1)"
+                    v-for="field in leaderHeaderFields.slice(1)"
                     v-on:click="changeLeaderSort(field.key)"
                     :class="field.key + '-cell cell'"
                 >
@@ -106,7 +106,7 @@
                     </button>
                 </div>
                 <div
-                    v-for="field in LEADER_HEADER_FIELDS_BY_TYPE[leadersType].slice(1)"
+                    v-for="field in leaderHeaderFields.slice(1)"
                     :class="field.key + '-cell cell '"
                     :title="item[field.key]"
                 >
