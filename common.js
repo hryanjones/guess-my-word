@@ -1,6 +1,6 @@
 const urlParams = new URLSearchParams(window.location.search);
 const useProdBackend = urlParams.get('useProd') === ''
-    || window.location.hostname.contains('hryanjones.com'); // contains to allow for beta on home.hryanjones.com
+    || window.location.hostname.includes('hryanjones.com'); // includes to allow for beta on home.hryanjones.com
 
 const BOARD_SERVER = useProdBackend
     // ? 'https://home.hryanjones.com'

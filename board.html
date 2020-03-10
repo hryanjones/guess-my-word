@@ -18,7 +18,7 @@
         :items="filteredLeaders || leaders"
         :min-item-size="18.5"
         key-field="name"
-        :class="'leaderboard-table ' + (hasPlayedThisBoardToday ? 'has-guesses' : '') + leadersType"
+        :class="'leaderboard-table ' + (hasPlayedThisBoardToday ? 'has-guesses ' : '') + leadersType"
         prerender="4"
     >
         <template #before>
