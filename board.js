@@ -18,7 +18,7 @@ const LEADER_HEADER_FIELDS_BY_TYPE = {
         { text: '# guesses', key: 'numberOfGuesses' },
         { text: 'time', key: 'time', formatter: getFormattedTime },
         { text: 'awards', key: 'awards' },
-        { text: 'guesses', key: 'guesses', formatter: joinWithSpaces },
+        { text: 'guesses', key: 'guesses' },
     ],
     allTime: [
         { text: 'name', key: 'name' },
@@ -389,6 +389,11 @@ function normalizeLeadersAndAddAwards(leadersData) {
         leader.awards = leader.awards || ''; // normalize awards
         if (leader.firstSubmitDate) {
             leader.firstSubmitDate = leader.firstSubmitDate.replace(/T.*/, ''); // remove time portion
+        }
+        if (leader.guesses) {
+            leader.guesses = joinWithSpaces(leader.guesses);
+        } else {
+            leader.guesses = '';
         }
         return leader;
     });
