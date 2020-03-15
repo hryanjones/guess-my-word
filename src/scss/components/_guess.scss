@@ -1,0 +1,126 @@
+.guess-container {
+	position: relative;
+	max-width: 500px;
+	margin: 0 auto;
+	
+	#before-label,
+	#after-label {
+		display: inline-block;
+		position: absolute;
+		top: 50%;
+		left: 0;
+		transform: translate(-150%, 0%);
+		opacity: 0.7;
+		font-size: 12px;
+	}
+	#after-guesses-container,
+	#before-guesses-container {
+		position: relative;
+	}
+	#after-label {
+		top: auto;
+		bottom: 0;
+	}
+	#before-label {
+		top: 0;
+		bottom: auto;
+	}
+	.current-guess {
+		font-weight: bold;
+		font-style: italic;
+	}
+}
+
+.input-wrapper {
+	position: relative;
+	margin: 30px 0;
+	background-color: $white;
+	border-radius: 4px;
+	padding: 10px;
+	height: 40px;
+	vertical-align: middle;
+	box-shadow: 0 0 5px $white;
+
+	input { // text-input
+		display: block;
+		appearance: none;
+		border: 0;
+		background-color: $white;
+		width: calc(100% - 95px);
+		height: 40px;
+		font-size: 22px;
+		vertical-align: top;
+
+		&:focus {
+			outline: 0;
+		}
+	}
+
+	.submit-wrapper {
+		float: right;
+
+		input[type=submit] {
+			display: inline-block;
+			height: 40px;
+			width: 90px;
+			border-radius: 4px;
+			border: 1px solid black;
+			font-size: 14px;
+			text-transform: uppercase;
+			transition: background-color 0.25s ease;
+
+			&:hover {
+				background-color: darken($white, 10%);
+			}
+		}
+	}
+	.error {
+		display: block;
+	    position: absolute;
+	    bottom: 4px;
+	    left: 0px;
+	    width: 100%;
+	    padding: 4px 0;
+		z-index: -1;
+	    transition: bottom 0.45s ease;
+
+	    border-radius: 0 0 4px 4px;
+	    background-color: tomato;
+	    color: $white;
+	    font-size: 14px;
+	    text-align: center;
+
+	    &.is-shown {
+	    	bottom: -23px;
+	    }
+	}
+
+	a#give-up {
+		display: inline-block;
+		position: absolute;
+		top: 50%;
+		left: 0;
+		transform: translate(-150%, -50%);
+		text-decoration: none;
+		color: $white;
+
+		&:after {
+			content: '';
+			display: inline-block;
+			position: absolute;
+			left: 0;
+			bottom: -4px;
+			width: 100%;
+			height: 1px;
+			background-color: $white;
+			opacity: 0;
+			transition: all 0.25s ease;
+		}
+		&:hover {
+			&:after {
+				bottom: -2px;
+				opacity: 1;
+			}
+		}
+	}
+}

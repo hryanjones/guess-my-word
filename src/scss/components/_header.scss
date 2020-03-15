@@ -1,0 +1,91 @@
+header {
+	padding-top: 50px;
+
+	h1 {
+		position: relative;
+		display: block;
+		text-align: center;
+		margin: 0 0 20px;
+
+		a {
+			position: relative;
+			display: inline-block;
+			font-size: 60px;
+			text-transform: uppercase;
+			text-shadow: 0.08em 0.08em 0.08em $black;
+			text-decoration: none;
+			color: $white;
+			transform: skew(5deg);
+			// transition: transform 0.45s ease;
+			transition: all 0.45s ease;
+			transform-origin: 0% 100%;
+			// animation: text 12s infinite forwards;
+
+			&:after {
+				position: absolute;
+				bottom: -4px;
+				content: '';
+				display: block;
+				width: 100%;
+				height: 8px;
+				box-shadow: 0.08em 0.08em 0.08em $black;
+				background-color: $white;
+				transition: box-shadow 0.45s ease;
+				// animation: border 12s infinite forwards;
+			}
+			&:hover {
+				transform: skew(1deg);
+				text-shadow: 0px 0.08em 0.08em $black;
+
+				&:after {
+					box-shadow: 0px 0.08em 0.08em $black;
+				}
+			}
+			span {
+				font-size: 72px;
+			}
+		}
+
+	}
+	.game-description {
+		display: block;
+		max-width: 400px;
+		margin: 0 auto;
+		padding: 0px 20px 40px;
+
+		border-radius: 9px;
+		color: $white;
+		font-size: 16px;
+		font-weight: 400;
+		text-align: left;
+
+		// .game-mode-hard & {
+		// 	background-color: lighten(red, 40%);
+		// }
+	}
+}
+@keyframes text {
+	80% {
+		transform: skew(5deg);
+		text-shadow: 0.08em 0.08em 0.08em $black;
+	}
+	90% {
+		transform: skew(3deg);
+		text-shadow: 0em 0.08em 0.08em $black;
+	}
+	100% {
+		transform: skew(5deg);
+		text-shadow: 0.08em 0.08em 0.08em $black;
+	}
+}
+@keyframes border {
+	80% {
+		box-shadow: 0.08em 0.08em 0.08em $black;
+	}
+	90% {
+		box-shadow: 0em 0.08em 0.08em $black;
+	}
+	100% {
+		box-shadow: 0.08em 0.08em 0.08em $black;
+	}
+}

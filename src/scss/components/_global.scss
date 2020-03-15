@@ -1,0 +1,71 @@
+html,
+body,
+#container {
+	display: block;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+body {
+	font-family: 'Epilogue', 'Elstob', Arial;
+	font-size: 100%;
+	font-weight: 400;
+	color: white;
+}
+#container {
+	position: relative;
+	background-color: transparent;
+
+	&:before,
+	&:after {
+		content: '';
+		display: block;
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		bottom: 0;
+		width: 100%;
+		height: 100%;
+		z-index: -3;
+	}
+	&:before {
+		background: radial-gradient($difficulty-normal-light, $difficulty-normal);
+		background-size: 100% 100%;
+	}
+	&:after {
+		z-index: -2;
+		transition: opacity 1.5s ease;
+		opacity: 0;
+		background: radial-gradient($difficulty-hard-light, $difficulty-hard);
+		background-size: 100% 100%;
+	}
+
+	&.game-mode-hard {
+		&:after {
+			opacity: 1;
+		}
+	}
+}
+a {
+	color: white;
+}
+
+[v-cloak] {
+    display: none;
+}
+
+button, select, option, input[type="submit"] {
+    cursor: pointer;
+}
+button[disabled], select[disabled], option[disabled], input[disabled] {
+    cursor: not-allowed;
+}
+
+#win-confetti {
+	position: fixed;
+	pointer-events: none;
+	z-index: 3;
+	width: 100%;
+	height: 100%;
+}

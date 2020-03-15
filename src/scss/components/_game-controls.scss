@@ -1,0 +1,80 @@
+.game-controls {
+	display: block;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	margin: 10px 20px 0;
+	z-index: 2;
+
+	button {
+		float: left;
+	}
+}
+
+.difficult-controls {
+	position: absolute;
+	right: 0;
+}
+.difficult-label {
+	font-size: 10px;
+	text-transform: uppercase;
+	margin-bottom: 2px;
+	text-align: right;
+}
+.difficulty-selector {
+	display: flex;
+	flex-wrap: nowrap;
+	width: 150px;
+	background-color: $white;
+	padding: 5px;
+	border-radius: 4px;
+	
+	> div {
+		flex: 0 0 50%;
+	}
+	input {
+		position: absolute;
+		opacity: 0;
+		z-index: 0;
+
+		&#normal-dif + .radio-button:after {
+			background-color: $difficulty-normal;
+		}
+		&#hard-dif + .radio-button:after {
+			background-color: $difficulty-hard;
+		}
+		&:checked + .radio-button {
+			// text-decoration: underline;
+			font-weight: bold;
+		}
+	}
+	.radio-button { // label-tag
+		position: relative;
+		display: block;
+		z-index: 1;
+		padding: 4px 2px;
+
+		cursor: pointer;
+		font-size: 12px;
+		text-transform: uppercase;
+		text-align: center;
+		color: $black;
+
+		&:after {
+			content: '';
+			position: absolute;
+			bottom: 0px;
+			left: 0;
+			right: 0;
+			height: 2px;
+			transition: all 0.25s ease;
+		}
+		&:hover {
+			&:after {
+				bottom: -2px;
+				height: 4px;
+			}
+		}
+	}
+}

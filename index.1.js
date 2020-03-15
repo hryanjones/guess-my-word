@@ -39,6 +39,9 @@ const OTHER_DIFFICULTY = {
 };
 let vueApp;
 
+const confettiSettings = { target: 'win-confetti' };
+let confetti = null;
+
 Vue.directive('focus', {
     inserted: (el) => {
         el.focus();
@@ -332,6 +335,7 @@ function makeGuess() {
     }
 
     this.guesses.push(guess);
+    console.log('word: ', this.word);
 
     if (!this.word) {
         this.setWordAndDate();
@@ -340,6 +344,7 @@ function makeGuess() {
     const comparison = this.getComparisonToTargetWord(guess);
     if (comparison === WIN) {
         this.winTime = now();
+        runConfetti();
         saveGame(this);
         return;
     }
@@ -347,6 +352,12 @@ function makeGuess() {
     this.guessValue = ''; // clear input to get ready for next guess
 
     this.recordGuess(guess, comparison);
+}
+
+function runConfetti(){
+    confetti = new ConfettiGenerator(confettiSettings);
+    confetti.render();
+    // debugger;
 }
 
 function sanitizeGuess(guess) {
@@ -408,6 +419,11 @@ function giveUp() {
 }
 
 function toggleDifficulty() {
+    console.log('toggling - confetti: ', confetti);
+    console.log('winTime: ', this.winTime);
+    if(confetti) {
+        confetti.clear();
+    }
     const haveMadeGuesses = this.guesses.length > 0;
     const haveWonOrGivenUp = this.winTime || this.gaveUpTime;
     if (!this.difficulty) {
@@ -420,6 +436,7 @@ function toggleDifficulty() {
         return;
     }
     this.difficulty = OTHER_DIFFICULTY[this.difficulty] || NORMAL;
+    
     this.reset({ stealFocus: true });
     saveLastSetDifficulty(this);
 }

@@ -1,0 +1,14 @@
+
+$white: white;
+$black: #292929;
+
+// Seems too strong for the eyes..
+// $difficulty-normal: blue;
+// $difficulty-normal-light: lighten($difficulty-normal, 15%);
+// $difficulty-hard: red;
+// $difficulty-hard-light: lighten($difficulty-hard, 15%);
+
+$difficulty-normal: #339CEE;
+$difficulty-normal-light: lighten($difficulty-normal, 20%); // gradient inner
+$difficulty-hard: #dd3333;
+$difficulty-hard-light: lighten($difficulty-hard, 15%); // gradient inner
