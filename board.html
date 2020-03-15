@@ -44,12 +44,15 @@
             <form
                 v-if="areLeadersLoaded()"
                 v-on:submit.prevent="onSearch"
-                style="display: inline-block; margin: 0 0 15px;"
+                style="display: inline-block; margin: 0 15px 15px 0;"
             >
                 <input type="text" placeholder="search names" :value="leaderSearch" v-on:change="updateLeaderSearch"/>
                 <input type="submit" value="🔎"/>
             </form>
             <button v-if="filteredLeaders" v-on:click="clearSearch">X</button>
+
+            <button v-if="wordCloudData" v-on:click="toggleWordCloud">☁</button>
+            <div v-if="wordCloudData" id="word-cloud-container"></div>
 
             <div class="error">{{error}}</div>
 
@@ -124,6 +127,7 @@
 <script src="common.js?version=2"></script>
 <script src="index.js?version=2"></script><!-- FIXME can get rid of this? -->
 <script src="board.js?version=2"></script>
+<script src="./wordcloud2.js"></script>
 
 <script src="/assets/js/googleAnalytics.js"></script>
 </body>

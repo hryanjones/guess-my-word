@@ -10,6 +10,7 @@ getSavedGameByDifficulty,
 isToday,
 now,
 getStoredUserNames,
+WordCloud,
 */
 
 const LEADER_HEADER_FIELDS_BY_TYPE = {
@@ -79,6 +80,8 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         localBadNames: loadSavedLocalBadNames(),
         usedNames: getStoredUserNames(),
         leaderHeaderFields: null, // determined in getLeaders
+        wordCloudData: null,
+        wordCloudCanvas: null,
     },
     created() {
         this.getLeaders();
@@ -143,6 +146,43 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         },
         isBadName(record) {
             return record.badName || this.localBadNames[record.name];
+        },
+        toggleWordCloud() {
+            const wordCloudContainer = document.getElementById('word-cloud-container');
+            if (this.wordCloudCanvas) {
+                wordCloudContainer.innerHTML = '';
+                this.wordCloudCanvas = null;
+                return;
+            }
+            this.wordCloudCanvas = document.createElement('div');
+            this.wordCloudCanvas.id = 'word-cloud-canvas';
+            wordCloudContainer.append(this.wordCloudCanvas);
+
+            let i = 0;
+            WordCloud(
+                this.wordCloudCanvas,
+                {
+                    list: this.wordCloudData,
+                    fontFamily: 'sans-serif',
+                    color: stripedColorsBlackToGray, // 'random-dark',
+                    minRotation: 0,
+                    maxRotation: 0,
+                    drawOutOfBound: false,
+                    shrinkToFit: true,
+                    gridSize: 10,
+                    minSize: 8,
+                }
+            );
+
+            function stripedColorsBlackToGray() {
+                let n = i * 2;
+                if (i % 2 !== 0) {
+                    n += 120;
+                }
+                i += 1;
+                n = Math.min(200, n);
+                return `rgb(${n}, ${n}, ${n})`;
+            }
         },
     },
 });
@@ -270,6 +310,7 @@ function getLeaders() {
         } else {
             this.onSearch();
             this.message = '';
+            this.wordCloudData = getWordCloudData(this.leaders);
         }
     };
 
@@ -281,17 +322,22 @@ function getLeaders() {
 
     this.message = 'loading...';
     this.leaders = [EMPTY_LEADER];
+    this.wordCloudData = null;
+    this.wordCloudCanvas = null;
+
     const queryString = getQueryStringForIncludingGuesses(this.hasPlayedThisBoardToday, this.difficulty);
     makeLeaderboardRequest(date, this.difficulty, onSuccess, onFailure, null, queryString);
 }
 
 function determineIfPlayedThisBoardToday(difficulty, type) {
+    // return true // GUESSES TEST
     if (type === 'allTime') return false; // can't report on all time board
     const savedGame = getSavedGameByDifficulty(difficulty);
     return Boolean(savedGame && savedGame.submitTime && isToday(savedGame.submitTime));
 }
 
 function getQueryStringForIncludingGuesses(hasPlayed, difficulty) {
+    // return '?name=miguelpotts&key=pop' // GUESSES TEST
     const savedGame = getSavedGameByDifficulty(difficulty);
     if (!hasPlayed || !savedGame) return '';
     const { username, guesses } = savedGame;
@@ -413,6 +459,52 @@ function getTwoDecimalPlaces(number) {
 
 function joinWithSpaces(array) {
     return array && array.join && array.join(' ');
+}
+
+function getWordCloudData(leaders) {
+    let maxWordFrequency = 0;
+    const wordFrequency = {};
+    leaders.forEach(({ guesses }) => {
+        guesses = (guesses && guesses.split(' ')) || ['word'];
+        guesses.pop(); // last word is the word, remove it
+        guesses.forEach((guess) => {
+            if (!wordFrequency[guess]) {
+                wordFrequency[guess] = 0;
+            }
+            wordFrequency[guess] += 1;
+            if (wordFrequency[guess] > maxWordFrequency) {
+                maxWordFrequency = wordFrequency[guess];
+            }
+        });
+    });
+
+    // remove words only used once
+    // Object.keys(wordFrequency).forEach((word) => {
+    //     if (wordFrequency[word] === 1) {
+    //         delete wordFrequency[word];
+    //     }
+    // });
+
+    if (maxWordFrequency < 10 || Object.keys(wordFrequency) < 5) {
+        return null;
+    }
+
+    return toWordCloud2List(wordFrequency);
+}
+
+function toWordCloud2List(wordFrequency) {
+    const list = [];
+    Object.keys(wordFrequency).forEach((word) => {
+        list.push([word, wordFrequency[word]]);
+    });
+
+    list.sort(([, aFrequency], [, bFrequency]) => bFrequency - aFrequency);
+    return list;
+}
+
+function randomColor() {
+    const randomUpTo200 = Math.round(Math.random() * 200);
+    return `rgb(${randomUpTo200}, ${randomUpTo200}, ${randomUpTo200})`;
 }
 
 /* eslint-disable */

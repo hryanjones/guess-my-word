@@ -193,6 +193,11 @@ form {
     font-size: 80%
 }
 
+#word-cloud-canvas {
+    height: 250px;
+    margin-bottom: 20px;
+}
+
 .leaderboard-table {
     padding: 0px 8px;
     height: 100vh;
