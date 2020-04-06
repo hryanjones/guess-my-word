@@ -67,7 +67,7 @@
                     <span v-if="sortConfig.key === 'name'" style="margin-left: 5px;">
                         {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
                     </span>
-                    {{leaderHeaderFields[0].text}}
+                    {{leaderHeaderFields[0].text}} ({{leaders.length}})
                     <button v-if="hasPlayedThisBoardToday" v-on:click="toggleReportMode">
                         <input
                             type="checkbox"
