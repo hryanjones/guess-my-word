@@ -438,7 +438,7 @@ function toggleDifficulty() {
 }
 
 function shouldShowSubmitName() {
-    return this.winTime && this.guesses.length > 1 && !this.isReplay && !this.submitTime
+    return this.winTime && this.guesses.length > 0 && !this.isReplay && !this.submitTime
         && isPlayDateToday(this.playDate);
 }
 
