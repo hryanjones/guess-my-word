@@ -342,7 +342,7 @@ function getQueryStringForIncludingGuesses(hasPlayed, difficulty) {
     if (!hasPlayed || !savedGame) return '';
     const { username, guesses } = savedGame;
     const [firstGuess] = guesses;
-    return `?name=${username}&key=${firstGuess}`;
+    return `?name=${encodeURIComponent(username)}&key=${firstGuess}`;
 }
 
 const OPPOSITE_SORT_DIRECTION = {
