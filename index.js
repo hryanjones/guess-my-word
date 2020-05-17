@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 forwardDay,
                 forwardWeek,
                 forwardMonth,
+                randomDay,
                 toggleShowDate,
             },
         });
@@ -623,6 +624,13 @@ function setNewPlayDate(app, dateNumberOrString) {
 }
 
 const FIRST_DATE = new Date(2019, 3, 24, 12);
+
+function randomDay(e) {
+    e.preventDefault();
+    const numberOfDaysSinceStart = Math.floor(((new Date()) - FIRST_DATE) / MILLISECONDS_IN_DAY)
+    const randomDaysSinceStart = Math.floor(Math.random() * numberOfDaysSinceStart);
+    setNewPlayDate(this, +FIRST_DATE + (randomDaysSinceStart * MILLISECONDS_IN_DAY));
+}
 
 function clampDate(date) {
     if (date > now()) {

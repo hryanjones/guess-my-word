@@ -35,7 +35,9 @@
         <button v-on:click="toggleShowDate" v-cloak title="play passed days">📅</button>
 
         <div v-cloak v-if="showDatePicker">
-            <div style="margin-bottom: 10px; font-style: italic;">play a previous day for fun</div>
+            <div style="margin-bottom: 10px; font-style: italic;">choose a previous or
+                <a v-on:click="randomDay" href="#">random</a>
+                day to play for fun</div>
             <div class="date-picker">
                 <button v-on:click="backMonth" title="back a month">&lt;m</button><button v-on:click="backWeek" title="back a month">&lt;w</button><button
                     v-on:click="backDay" title="back a day">&lt;d</button>
