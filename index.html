@@ -107,6 +107,14 @@
                     value="guess"
                     v-bind:disabled="winTime || gaveUpTime"
                 />
+                <a
+                    v-if="winTime || gaveUpTime"
+                    v-bind:href="`https://duckduckgo.com/?q=${guessValue}&ia=definition`"
+                    target="_blank"
+                    style="font-size: 90%"
+                >
+                    📖 definition
+                </a>
 
                 <a
                     id="give-up"
