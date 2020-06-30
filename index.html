@@ -112,6 +112,7 @@
                     v-bind:href="`https://duckduckgo.com/?q=${guessValue}&ia=definition`"
                     target="_blank"
                     style="font-size: 90%"
+                    key="definition"
                 >
                     📖 definition
                 </a>
@@ -121,6 +122,7 @@
                     href="#"
                     v-on:click="giveUp"
                     v-if="guesses.length && !gaveUpTime"
+                    key="give-up"
                 >
                     give up :(
                 </a>

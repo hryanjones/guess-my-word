@@ -416,7 +416,7 @@ function giveUp(e) {
     if (!confirm('Really give up?')) {
         return;
     }
-    e.preventDefault(); // for some reason this registers as a click on the definition <a> tag
+    e.preventDefault(); // don't actually perform any navigation on a tag
     this.guessValue = this.word;
     this.gaveUpTime = now();
     saveGame(this);
