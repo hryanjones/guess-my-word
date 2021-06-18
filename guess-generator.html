@@ -18,42 +18,100 @@
     <a class="bigger-target" href="./README.html">about</a>
 </header>
 
+<pre>
+cat backupLeaderboards/*normal.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | sed -e 's/^.* //' > /tmp/guessed-normal-words
+
+cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | sed -e 's/^.* //' > /tmp/guessed-hard-words
+</pre>
+<button id="analyze">Analyze new words</button>
 <div style="display: flex">
-    <textarea id="new-words" rows="25"></textarea>
-    
-    <div id="new-words-errors" style="color: #c50000; margin-left: 20px; font-size: 13px">some error</div>
+    <div><h3>accepted</h3><textarea id="accepted" rows="30"></textarea></div>
+    <div><h3>new</h3><textarea id="new" rows="30"></textarea></div>
+    <div><h3>exclude</h3><textarea id="exclude" rows="30"></textarea></div>
 </div>
 
 <script src="https://d2t3dun0il9ood.cloudfront.net/dictionary.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
 <script src="index.js"></script>
+<script src="normal-word-exclude-list.js"></script>
+<script src="hard-word-exclude-list.js"></script>
 <script>
-    ensureDifficultyMatchesDropdown(); // shouldn't be needed but doesn't hurt
-    getElement('new-words').onkeyup = validateNewWords;
-    getElement('new-words').focus();
+    getElement('analyze').onclick = validateNewWords;
+
+
+    const existingExcludesList = {
+        normal: normalListExclude,
+        hard: hardListExclude,
+    };
+
+    const newExcludesList = {
+        normal: [],
+        hard: [],
+    };
+
+    const acceptedNewWords = {
+        normal: [],
+        hard: [],
+    }
+
+    getInvalidReason.guesses = [];
 
     function validateNewWords(e) {
-        if (e.which !== 13) return;
-        const newWords = getElement('new-words').value.split('\n');
-        const errorsInHTML = newWords
-            .map(newWord => {
-                if (!newWord) return;
-                const likeOldWord = possibleWords[difficulty].find(oldWord => oldWord.startsWith(newWord));
-                if (newWord === likeOldWord) {
-                    return `${newWord} a repeat from the past`;
-                }
-                if (likeOldWord) {
-                    return `${newWord} is too much like ${likeOldWord}`;
-                }
-                // make sure it's in our scrabble dictionary
-                const invalidReason = getInvalidReason(newWord);
-                if (invalidReason) {
-                    return `${newWord}: ${invalidReason}`;
-                }
-            })
-            .map(error => `<div>${error || '_'}</div>`)
-            .join('');
+        let newWords = getWordsFromElement('new');
+        const difficulty = getElement('difficulty-changer').value;
+        newExcludesList[difficulty] = getWordsFromElement('exclude');
+        acceptedNewWords[difficulty] = getWordsFromElement('accepted');
 
-        getElement('new-words-errors').innerHTML = errorsInHTML;
+        const previousWords = possibleWords.normal
+            .concat(possibleWords.hard) // hard and normal words should not overlap
+            .concat(acceptedNewWords[difficulty]);
+        const wordsToExclude = new Set(
+            previousWords
+                .concat(existingExcludesList[difficulty])
+                .concat(newExcludesList[difficulty])
+        );
+
+        const actualNewWords = [];
+        const warnWords = [];
+
+        const POTENTIAL_BAD_ENDINGS = /(ing|ed|ly)$/;
+        newWords.sort().forEach(word => {
+            if (wordsToExclude.has(word)) {
+                console.log(`${word} is in previous guesses, accepted guesses, or old/new exclude list`);
+                return;
+            }
+            if (getInvalidReason(word)) {
+                console.log(`${word} is somehow not in dictionary`);
+                return;
+            }
+            const likeOldWord = previousWords.find(oldWord => oldWord.startsWith(word) || word.startsWith(oldWord));
+            if (likeOldWord) {
+                actualNewWords.push(`${word} is a lot like ${likeOldWord}`);
+                return;
+            }
+
+            const badEndingMatch = word.match(POTENTIAL_BAD_ENDINGS);
+            if (badEndingMatch) {
+                actualNewWords.push(`${word} ends with "${badEndingMatch[0]}"`);
+                return;
+            }
+            actualNewWords.push(word);
+        });
+
+        setWordsInElement(actualNewWords, 'new');
+    }
+
+    function getWordsFromElement(id) {
+        return getElement(id).value
+            .split('\n')
+            .filter(w => w.trim()); // exclude anything empty
+    }
+    function setWordsInElement(words, id) {
+        return getElement(id).value = words.join('\n');
+    }
+
+    function getElement(id) {
+        return document.querySelector(`#${id}`);
     }
 </script>
 
