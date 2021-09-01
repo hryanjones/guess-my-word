@@ -138,6 +138,10 @@ function reset(options) {
     this.areGuessesPublic = getAreGuessesPublicDefault();
 
     if (!options || !options.stealFocus) return;
+    setFocusInGuesserInput();
+}
+
+function setFocusInGuesserInput() {
     Vue.nextTick(() => {
         getElement('new-guess').focus();
     });
@@ -371,6 +375,10 @@ function makeGuess() {
     this.guessValue = ''; // clear input to get ready for next guess
 
     this.recordGuess(guess, comparison);
+
+    Vue.nextTick(() => {
+        getElement('new-guess').focus();
+    });
 }
 
 function sanitizeGuess(guess) {
