@@ -376,9 +376,7 @@ function makeGuess() {
 
     this.recordGuess(guess, comparison);
 
-    Vue.nextTick(() => {
-        getElement('new-guess').focus();
-    });
+    setFocusInGuesserInput();
 }
 
 function sanitizeGuess(guess) {
