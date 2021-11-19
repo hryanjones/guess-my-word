@@ -10,7 +10,7 @@
 <header>
     <h1>
         <a href="./" class="home">Guess my word</a>
-        <select id="difficulty-changer" onchange="changeDifficulty()">
+        <select id="difficulty-changer">
             <option value="normal">normal</option>
             <option value="hard">hard</option>
         </select>
@@ -26,7 +26,9 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
 <button id="analyze">Analyze new words</button>
 <div style="display: flex">
     <div><h3>accepted</h3><textarea id="accepted" rows="30"></textarea></div>
-    <div><h3>new</h3><textarea id="new" rows="30"></textarea></div>
+    <div style="flex-grow: 1;"><h3>new</h3>
+        <textarea style="width: 100%" id="new" rows="30"></textarea>
+    </div>
     <div><h3>exclude</h3><textarea id="exclude" rows="30"></textarea></div>
 </div>
 
@@ -37,6 +39,7 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
 <script src="hard-word-exclude-list.js"></script>
 <script>
     getElement('analyze').onclick = validateNewWords;
+    getElement('new').onkeyup = moveWord;
 
 
     const existingExcludesList = {
@@ -99,6 +102,43 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
         });
 
         setWordsInElement(actualNewWords, 'new');
+    }
+
+
+
+    function moveWord(e) {
+        const {key} = e;
+        if (key !== 'ArrowLeft' && key !== 'ArrowRight') return;
+        const textarea = getElement('new');
+        const cursorPosition = textarea.selectionStart;
+        const word = getLineText().replace(/ .+/, '');
+        if (!word) return;
+        if (key === 'ArrowLeft') {
+            textarea.selectionStart = cursorPosition + 1;
+            getElement('accepted').value += word + '\n';
+        } else {
+            getElement('exclude').value += word + '\n';
+            textarea.selectionStart = cursorPosition - 1;
+            textarea.selectionEnd = cursorPosition - 1;
+        }
+
+        function getLineText() {
+            const fullValue = textarea.value;
+
+            // console.log(`char @ cursor is ${fullValue[cursorPosition]}`);
+            let start = cursorPosition;
+            while (start > 0 && fullValue[start - 1] !== '\n') {
+                start -= 1;
+            }
+            let end = cursorPosition;
+            while (end < (fullValue.length) && fullValue[end] !== '\n') {
+                end += 1;
+            }
+            const fullLine = fullValue.slice(start, end);
+            const movedBetweenLines = fullLine.includes('\n');
+            if (movedBetweenLines) return '';
+            return fullLine;
+        }
     }
 
     function getWordsFromElement(id) {
