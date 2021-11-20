@@ -26,7 +26,7 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
 <button id="analyze">Analyze new words</button>
 <div style="display: flex">
     <div><h3>accepted</h3><textarea id="accepted" rows="30"></textarea></div>
-    <div style="flex-grow: 1;"><h3>new</h3>
+    <div style="flex-grow: 1;"><h3>new <small><button onclick='reduceNewWords()'>reduce</button></small></h3>
         <textarea style="width: 100%" id="new" rows="30"></textarea>
     </div>
     <div><h3>exclude</h3><textarea id="exclude" rows="30"></textarea></div>
@@ -104,8 +104,6 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
         setWordsInElement(actualNewWords, 'new');
     }
 
-
-
     function moveWord(e) {
         const {key} = e;
         if (key !== 'ArrowLeft' && key !== 'ArrowRight') return;
@@ -139,6 +137,14 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
             if (movedBetweenLines) return '';
             return fullLine;
         }
+    }
+
+    function reduceNewWords() {
+        const newWords = getWordsFromElement('new');
+        const reducedNewWords = newWords.filter((word, i) =>
+            Math.floor(i / 5) % 2 === 0 // take first 5, drop next 5, take next 5, etc.
+        );
+        setWordsInElement(reducedNewWords, 'new');
     }
 
     function getWordsFromElement(id) {
