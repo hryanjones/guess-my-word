@@ -18,10 +18,11 @@
     <a class="bigger-target" href="./README.html">about</a>
 </header>
 
+Look at top 5000 most guessed words
 <pre>
-cat backupLeaderboards/*normal.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | sed -e 's/^.* //' > /tmp/guessed-normal-words
+cat backupLeaderboards/*normal.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | head -n 5000 | sed -e 's/^.* //' | sort > /tmp/guessed-normal-words
 
-cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | sed -e 's/^.* //' > /tmp/guessed-hard-words
+cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | head -n 5000 | sed -e 's/^.* //' | sort > /tmp/guessed-hard-words
 </pre>
 <button id="analyze">Analyze new words</button>
 <div style="display: flex">
@@ -43,8 +44,8 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
 
 
     const existingExcludesList = {
-        normal: normalListExclude,
-        hard: hardListExclude,
+        normal: normalListExclude.split('\n').filter(w => w),
+        hard: hardListExclude.split('\n').filter(w => w),
     };
 
     const newExcludesList = {
