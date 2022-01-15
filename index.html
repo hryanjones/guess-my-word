@@ -97,9 +97,9 @@
                     id="new-guess"
                     placeholder="type a word then -->"
                     type="text"
-                    autocomplete="off"
+                    autocomplete="new-password"
                     autocorrect="off"
-                    v-on:input="setGuess"
+                    v-on:change="setGuess"
                     v-bind:disabled="winTime || gaveUpTime"
                     v-bind:value="guessValue"
                 />
