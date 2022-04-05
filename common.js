@@ -9,7 +9,7 @@ const BOARD_SERVER = useProdBackend
 // const BOARD_SERVER = 'https://hryanjones.builtwithdark.com';
 // const BAD_NAMES_SERVER = 'https://hryanjones.builtwithdark.com/gmw/bad-names';
 
-const UNKNOWN_LEADERBOARD_ERROR = 'Sorry, the completion board is having trouble right now. Please try again in a little bit. (contact @hryanjones if it persists)';
+const UNKNOWN_LEADERBOARD_ERROR = 'Sorry, the completion board is having trouble right now. Please try again in a little bit. (contact @guessmyword1 if it persists)';
 
 
 function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData, extraURL = '') {
