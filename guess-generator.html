@@ -110,16 +110,22 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
         if (key !== 'ArrowLeft' && key !== 'ArrowRight') return;
         const textarea = getElement('new');
         const cursorPosition = textarea.selectionStart;
-        const word = getLineText().replace(/ .+/, '');
+        console.log('cursorPosition', cursorPosition);
+        const lineText = getLineText();
+        const word = lineText.replace(/ .+/, '');
         if (!word) return;
         if (key === 'ArrowLeft') {
-            textarea.selectionStart = cursorPosition + 1;
+            // textarea.selectionStart = cursorPosition + 1;
             getElement('accepted').value += word + '\n';
         } else {
             getElement('exclude').value += word + '\n';
-            textarea.selectionStart = cursorPosition - 1;
-            textarea.selectionEnd = cursorPosition - 1;
+            // textarea.selectionStart = cursorPosition - 1;
+            // textarea.selectionEnd = cursorPosition - 1;
         }
+        textarea.value = textarea.value.replace(lineText + '\n', '');
+        
+        textarea.selectionStart = 2;
+        textarea.selectionEnd = textarea.selectionStart;
 
         function getLineText() {
             const fullValue = textarea.value;
