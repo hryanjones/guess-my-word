@@ -18,11 +18,40 @@
     <a class="bigger-target" href="./README.html">about</a>
 </header>
 
-Look at top 6000 most guessed words
+<h2>New just use random repeats way</h2>
+<p>
+    This breaks the existing list into 3 chunks of 526 (and skips the first three as there's no normal words there). For each chunk, take it, randomize it, then put it back on the end of the list.
+</p>
+<p>
+    Once you're done with that, put a checkmark ✔️ out front so can use the next one next time.
+</p>
 <pre>
-cat backupLeaderboards/*normal.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | head -n 6000 | sed -e 's/^.* //' | sort > /tmp/guessed-normal-words
+// in JS console
 
-cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | head -n 6000 | sed -e 's/^.* //' | sort > /tmp/guessed-hard-words
+# List 1
+
+copy("'" + possibleWords.normal.slice(3,529).join("',\n'") + "',");
+copy("'" + possibleWords.hard.slice(3,529).join("',\n'") + "',")
+
+# List 2
+
+copy("'" + possibleWords.normal.slice(529,1055).join("',\n'") + "',");
+copy("'" + possibleWords.hard.slice(529,1055).join("',\n'") + "',");
+
+# List 3
+
+copy("'" + possibleWords.normal.slice(1055,1581).join("',\n'") + "',");
+copy("'" + possibleWords.hard.slice(1055,1581).join("',\n'") + "',");
+</pre>
+<hr>
+
+<h3>Appendix - old manual way</h3>
+
+Look at top some 1000 most guessed words
+<pre style="max-width: 100%; white-space: break-spaces;">
+cat backupLeaderboards/*normal.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | head -n 7000 | tail -n 1000 | sed -e 's/^.* //' | sort > /tmp/guessed-normal-words
+
+cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"//' -e 's/".*$//' | sed -e 's/,[a-z]*$//' | tr "," \n | grep -E "...." | sort | uniq -c | sort -rn | head -n 8000 | tail -n 1000 | sed -e 's/^.* //' | sort > /tmp/guessed-hard-words
 </pre>
 <button id="analyze">Analyze new words</button>
 <div style="display: flex">
