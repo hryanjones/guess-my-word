@@ -1,3 +1,12 @@
+:root {
+    color-scheme: dark light;
+}
+/* <https://github.com/whatwg/html/issues/5426#issuecomment-607286557> */
+@supports (color-scheme: light dark) {
+    @media (prefers-color-scheme: dark) {
+        a { color: violet; }
+    }
+}
 /* Shared Styles */
 
 body {
@@ -7,7 +16,7 @@ h1 {
     margin-bottom: 0px; /* add padding to header instead so "about" also gets it */
 }
 h1 .home {
-    color: #000;
+    color: inherit;
 }
 small {
     font-size: 50%;
@@ -183,10 +192,10 @@ form {
 }
 
 .error {
-    color: #c50000;
+    border-bottom: 3px solid #c50000;
 }
 .warning strong {
-    color: #850000;
+    border-bottom: 3px solid #850000;
 }
 .error, .warning {
     font-style: italic;
@@ -258,6 +267,12 @@ form {
     font-weight: bold;
     white-space: unset;
 }
+@media (prefers-color-scheme: dark) {
+    .leaderboard-table .header.row .cell {
+        border-bottom: 1px solid white;
+        background-color: black;
+    }
+}
 
 .cell {
     padding: 3px 7px;
@@ -279,11 +294,19 @@ form {
 .even {
     background-color: #EEE;
 }
+@media (prefers-color-scheme: dark) {
+    .even { background-color: #111; }
+}
 
 .my-name {
     font-weight: bold;
     font-style: italic;
     background-color: #FFB;
+}
+@media (prefers-color-scheme: dark) {
+    .my-name {
+        background-color: #004;
+    }
 }
 
 .cell.name-cell,
