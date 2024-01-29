@@ -1,6 +1,3 @@
-:root {
-    color-scheme: dark light;
-}
 /* <https://github.com/whatwg/html/issues/5426#issuecomment-607286557> */
 @supports (color-scheme: light dark) {
     @media (prefers-color-scheme: dark) {

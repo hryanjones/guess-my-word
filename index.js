@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el: '#container',
             data: {
                 difficulty: null,
+                colorScheme: 'light dark',
                 word: undefined,
                 guessValue: '',
                 startTime: null,
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 giveUp,
                 setWordAndDate,
                 toggleDifficulty,
+                setColorScheme,
                 submitToLeaderboard,
                 setUsername(event) {
                     this.username = event.target.value;
@@ -453,6 +455,11 @@ function toggleDifficulty() {
     this.difficulty = OTHER_DIFFICULTY[this.difficulty] || NORMAL;
     this.reset({ stealFocus: true });
     saveLastSetDifficulty(this);
+}
+
+function setColorScheme(e) {
+    this.colorScheme = e.target.value;
+    getElement("meta-color-scheme").content = e.target.value;
 }
 
 function shouldShowSubmitName() {
