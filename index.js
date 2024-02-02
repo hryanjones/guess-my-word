@@ -130,6 +130,7 @@ function reset(options) {
 
     resetStats(this);
     loadStoredUserNames(this);
+    loadColorScheme(this);
     // reset stats
 
     // fix leaderboard state
@@ -457,9 +458,24 @@ function toggleDifficulty() {
     saveLastSetDifficulty(this);
 }
 
+const COLOR_SCHEME_KEY = 'colorSchemePreferenceKey';
+const DEFAULT_COLOR_SCHEME = 'light dark';
+
 function setColorScheme(e) {
     this.colorScheme = e.target.value;
-    getElement("meta-color-scheme").content = e.target.value;
+    getElement("meta-color-scheme").content = this.colorScheme;
+    if (!this.isLocalStorageAvailable) {
+        return;
+    }
+    localStorage.setItem(COLOR_SCHEME_KEY, this.colorScheme);
+}
+
+function loadColorScheme(app) {
+    const colorScheme = app.isLocalStorageAvailable && localStorage.getItem(COLOR_SCHEME_KEY);
+    const existingColorScheme = app.colorScheme;
+    app.colorScheme = colorScheme || DEFAULT_COLOR_SCHEME;
+    console.log('here, colorScheme = ', colorScheme, 'existingColorScheme', existingColorScheme);
+    getElement("meta-color-scheme").content = colorScheme;
 }
 
 function shouldShowSubmitName() {

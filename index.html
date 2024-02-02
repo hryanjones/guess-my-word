@@ -55,14 +55,18 @@
     </div>
 
     <nav>
-        <select
-            id="color-scheme"
-            v-on:change="setColorScheme"
-        >
-            <option value="light dark">default theme</option>
-            <option value="light">light</option>
-            <option value="dark">dark</option>
-        </select>
+        <label class="bigger-target" style="font-weight: bold;" v-cloak>
+            theme:
+            <select
+                id="color-scheme"
+                v-on:change="setColorScheme"
+                v-bind:value="colorScheme"
+            >
+                <option value="light dark">default</option>
+                <option value="light">light</option>
+                <option value="dark">dark</option>
+            </select>
+        </label>
         <a class="bigger-target" href="./board.html">🏆 Board</a>
         <a class="bigger-target" href="./README.html">about</a>
     </nav>
