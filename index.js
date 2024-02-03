@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
             el: '#container',
             data: {
                 difficulty: null,
-                colorScheme: 'light dark',
                 word: undefined,
                 guessValue: '',
                 startTime: null,
@@ -89,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 giveUp,
                 setWordAndDate,
                 toggleDifficulty,
-                setColorScheme,
                 submitToLeaderboard,
                 setUsername(event) {
                     this.username = event.target.value;
@@ -130,7 +128,6 @@ function reset(options) {
 
     resetStats(this);
     loadStoredUserNames(this);
-    loadColorScheme(this);
     // reset stats
 
     // fix leaderboard state
@@ -456,26 +453,6 @@ function toggleDifficulty() {
     this.difficulty = OTHER_DIFFICULTY[this.difficulty] || NORMAL;
     this.reset({ stealFocus: true });
     saveLastSetDifficulty(this);
-}
-
-const COLOR_SCHEME_KEY = 'colorSchemePreferenceKey';
-const DEFAULT_COLOR_SCHEME = 'light dark';
-
-function setColorScheme(e) {
-    this.colorScheme = e.target.value;
-    getElement("meta-color-scheme").content = this.colorScheme;
-    if (!this.isLocalStorageAvailable) {
-        return;
-    }
-    localStorage.setItem(COLOR_SCHEME_KEY, this.colorScheme);
-}
-
-function loadColorScheme(app) {
-    const colorScheme = app.isLocalStorageAvailable && localStorage.getItem(COLOR_SCHEME_KEY);
-    const existingColorScheme = app.colorScheme;
-    app.colorScheme = colorScheme || DEFAULT_COLOR_SCHEME;
-    console.log('here, colorScheme = ', colorScheme, 'existingColorScheme', existingColorScheme);
-    getElement("meta-color-scheme").content = colorScheme;
 }
 
 function shouldShowSubmitName() {

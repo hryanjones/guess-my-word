@@ -5,8 +5,8 @@
 <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤔</text></svg>">
 <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
-<meta id="meta-color-scheme" name="color-scheme" content="light dark"/>
-<link rel="stylesheet" href="./index.css?version=5"/>
+
+<link rel="stylesheet" href="./index.css?version=6"/>
 </head>
 <body>
 <div
@@ -55,18 +55,6 @@
     </div>
 
     <nav>
-        <label class="bigger-target" style="font-weight: bold;" v-cloak>
-            theme:
-            <select
-                id="color-scheme"
-                v-on:change="setColorScheme"
-                v-bind:value="colorScheme"
-            >
-                <option value="light dark">default</option>
-                <option value="light">light</option>
-                <option value="dark">dark</option>
-            </select>
-        </label>
         <a class="bigger-target" href="./board.html">🏆 Board</a>
         <a class="bigger-target" href="./README.html">about</a>
     </nav>
