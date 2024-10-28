@@ -1,48 +1,49 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<title>Guess my word - Completion board</title>
-<link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤔</text></svg>">
-<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <title>Guess my word - Completion board</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤔</text></svg>">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="./index.css?version=7"/>
-<link rel="stylesheet" href="./vue-virtual-scroller.css"/>
+    <link rel="stylesheet" href="./index.css?version=7" />
+    <link rel="stylesheet" href="./vue-virtual-scroller.css" />
 </head>
+
 <body style="margin: 0px;">
-<div id="leaderboard-container">
+    <div id="leaderboard-container">
 
 
-<div class="leaderboard">
+        <div class="leaderboard">
 
-    <dynamic-scroller
-        v-if="leaders.length"
-        :items="filteredLeaders || leaders"
-        :min-item-size="18.5"
-        key-field="name"
-        :class="'leaderboard-table ' + (hasPlayedThisBoardToday ? 'has-guesses ' : '') + leadersType"
-        prerender="4"
-    >
-        <template #before>
-            <header style="padding-top: 8px;">
-                <h1>
-                    <a href="./" class="home">Guess my word</a>
+            <dynamic-scroller
+                v-if="leaders.length"
+                :items="filteredLeaders || leaders"
+                :min-item-size="18.5"
+                key-field="name"
+                :class="'leaderboard-table ' + (hasPlayedThisBoardToday ? 'has-guesses ' : '') + leadersType"
+                prerender="4">
+                <template #before>
+                    <header style="padding-top: 8px;">
+                        <h1>
+                            <a href="./" class="home">Guess my word</a>
                     <select id="difficulty-changer" v-on:change="setDifficulty" v-bind:class="difficulty" v-bind:value="difficulty">
-                        <option value="normal">normal</option>
-                        <option value="hard">hard</option>
-                    </select>
-                </h1>
-                <a class="bigger-target" href="./README.html">about</a>
-            </header>
+                                <option value="normal">normal</option>
+                                <option value="hard">hard</option>
+                            </select>
+                        </h1>
+                        <a class="bigger-target" href="./README.html">about</a>
+                    </header>
 
-            <h2 style="display: inline-block; margin-right: 15px;">
-                Completion board for "{{difficulty}}"
-                <select style="font-size: 0.8em;" v-bind:value="leadersType" v-on:change="toggleLeaderType">
-                    <option value="normal">for Today</option>
-                    <option value="allTime">for All time</option>
-                </select>
+                    <h2 style="display: inline-block; margin-right: 15px;">
+                        Completion board for "{{difficulty}}"
+                        <select style="font-size: 0.8em;" v-bind:value="leadersType" v-on:change="toggleLeaderType">
+                            <option value="normal">for Today</option>
+                            <option value="allTime">for All time</option>
+                        </select>
 
-            </h2>
+                    </h2>
             <form
                 v-if="areLeadersLoaded()"
                 v-on:submit.prevent="onSearch"
@@ -50,87 +51,71 @@
             >
                 <input type="text" placeholder="search names" :value="leaderSearch" v-on:change="updateLeaderSearch"/>
                 <input type="submit" value="🔎"/>
-            </form>
-            <button v-if="filteredLeaders" v-on:click="clearSearch">X</button>
+                    </form>
+                    <button v-if="filteredLeaders" v-on:click="clearSearch">X</button>
 
-            <button v-if="wordCloudData" v-on:click="toggleWordCloud">☁</button>
-            <div v-if="wordCloudData" id="word-cloud-container"></div>
+                    <button v-if="wordCloudData" v-on:click="toggleWordCloud">☁</button>
+                    <div v-if="wordCloudData" id="word-cloud-container"></div>
 
-            <div class="error">{{error}}</div>
+                    <div class="error">{{error}}</div>
 
-            <div>{{message}}</div>
+                    <div>{{message}}</div>
 
-            <div id="leaderboard-header-top"></div>
-            <div v-if="areLeadersLoaded()" class="header row" id="leaderboard-header">
+                    <div id="leaderboard-header-top"></div>
+                    <div v-if="areLeadersLoaded()" class="header row" id="leaderboard-header">
                 <div
                     v-on:click="changeLeaderSort('name')"
                     class="name-cell cell"
                 >
-                    <span v-if="sortConfig.key === 'name'" style="margin-left: 5px;">
-                        {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
-                    </span>
-                    {{leaderHeaderFields[0].text}} ({{leaders.length}})
-                    <button v-if="hasPlayedThisBoardToday" v-on:click="toggleReportMode">
-                        <input
-                            type="checkbox"
-                            v-if="reportMode"
-                            style="pointer-events: none;"
-                            checked
-                        />
-                        🚩
-                    </button>
-                </div>
+                            <span v-if="sortConfig.key === 'name'" style="margin-left: 5px;">
+                                {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
+                            </span>
+                            {{leaderHeaderFields[0].text}} ({{leaders.length}})
+                        </div>
                 <div
                     v-for="field in leaderHeaderFields.slice(1)"
                     v-on:click="changeLeaderSort(field.key)"
                     :class="field.key + '-cell cell'"
                 >
-                    <span v-if="sortConfig.key === field.key" style="margin-left: 5px;">
-                        {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
-                    </span>
-                    {{field.text}}
-                </div>
-            </div>
-        </template>
-        <template v-slot="{item, index, active}">
+                            <span v-if="sortConfig.key === field.key" style="margin-left: 5px;">
+                                {{sortConfig.direction === 'descending' ? '▾' : '▴'}}
+                            </span>
+                            {{field.text}}
+                        </div>
+                    </div>
+                </template>
+                <template v-slot="{item, index, active}">
             <dynamic-scroller-item
                 :item="item"
                 :active="active"
                 :data-index="index"
                 :class="'row ' + (index % 2 === 0 ? 'even ' : '') + (usedNames.includes(item.name) ? 'my-name' : '')"
             >
-                <div class="name-cell cell" :title="item.name">
-                    <button v-if="!reportMode && isBadName(item)" v-on:click="toggleBadNames">
-                        {{showInappropriateNames ? 'hide' : '⚠ show bad names'}}
-                    </button>
-                    <span v-if="reportMode && isBadName(item)">(hidden)</span>
-
-                    {{!reportMode && (!isBadName(item) || showInappropriateNames) ? item.name : ''}}
-                    <button v-if="!isBadName(item) && reportMode && item.name !== usedNames[0]" v-on:click="reportName(item.name)">
-                        🚩 report "<i>{{item.name}}</i>"
-                    </button>
-                </div>
+                        <div class="name-cell cell" :title="item.name">
+                            {{item.name}}
+                        </div>
                 <div
                     v-for="field in leaderHeaderFields.slice(1)"
                     :class="field.key + '-cell cell '"
                     :title="item[field.key]"
                 >
-                    {{field.formatter(item[field.key])}}
-                </div>
-            </dynamic-scroller-item>
-        </template>
-    </dynamic-scroller>
+                            {{field.formatter(item[field.key])}}
+                        </div>
+                    </dynamic-scroller-item>
+                </template>
+            </dynamic-scroller>
 
-</div>
-</div>
+        </div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
-<script src="./vue-virtual-scroller.min.js"></script>
-<script src="common.js?version=5"></script>
-<script src="index.js?version=5"></script><!-- FIXME can get rid of this? -->
-<script src="board.js?version=5"></script>
-<script src="./wordcloud2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <script src="./vue-virtual-scroller.min.js"></script>
+    <script src="common.js?version=5"></script>
+    <script src="index.js?version=5"></script><!-- FIXME can get rid of this? -->
+    <script src="board.js?version=5"></script>
+    <script src="./wordcloud2.js"></script>
 
-<script src="/assets/js/googleAnalytics.js"></script>
+    <script src="/assets/js/googleAnalytics.js"></script>
 </body>
+
 </html>

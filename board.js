@@ -60,8 +60,6 @@ const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
 
 const difficultyFromURL = urlParams.get('difficulty');
 const searchFromURL = urlParams.get('search');
-const LOCAL_BAD_NAMES_KEY = 'guess-my-word-leaderboard-bad-names';
-const REPORT_DATE_KEY = 'guess-my-word-leaderboard-recent-report-dates';
 
 const app = new Vue({ // eslint-disable-line no-unused-vars
     el: '#leaderboard-container',
@@ -74,10 +72,7 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         sortConfig: DEFAULT_SORT_CONFIG_BY_LEADER_TYPE.normal,
         leaderSearch: searchFromURL || '',
         filteredLeaders: null,
-        showInappropriateNames: false,
-        reportMode: false,
         hasPlayedThisBoardToday: null, // determined in getLeaders
-        localBadNames: loadSavedLocalBadNames(),
         usedNames: getStoredUserNames(),
         leaderHeaderFields: null, // determined in getLeaders
         wordCloudData: null,
@@ -96,7 +91,6 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         changeLeaderSort,
         toggleLeaderType() {
             this.leadersType = this.leadersType === 'normal' ? 'allTime' : 'normal';
-            this.reportMode = false;
             this.sortConfig = DEFAULT_SORT_CONFIG_BY_LEADER_TYPE[this.leadersType];
             this.getLeaders();
         },
@@ -120,32 +114,6 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
         },
         areLeadersLoaded() {
             return this.leaders[0] !== EMPTY_LEADER;
-        },
-        toggleBadNames() {
-            this.showInappropriateNames = !this.showInappropriateNames;
-            hackToReRenderList(this.leaders);
-        },
-        toggleReportMode(e) {
-            this.reportMode = !this.reportMode;
-            e.stopPropagation(); // don't change leaderboard sort
-            e.preventDefault();
-            hackToReRenderList(this.leaders);
-        },
-        reportName(name) {
-            if (!confirm(`Really report "${name}" as offensive?
-
-(Note: this name will be immediately and ALWAYS hidden for you, and hidden for others with enough reports.)`)) {
-                return;
-            }
-
-            this.localBadNames[name] = !this.localBadNames[name];
-            this.reportMode = false;
-            saveLocalBadNames(this.localBadNames);
-            reportBadName(name, this.difficulty, this.lastUsedName);
-            hackToReRenderList(this.leaders);
-        },
-        isBadName(record) {
-            return record.badName || this.localBadNames[record.name];
         },
         toggleWordCloud() {
             const wordCloudContainer = document.getElementById('word-cloud-container');
@@ -193,67 +161,7 @@ function hackToReRenderList(leaders) {
     leaders.pop();
 }
 
-function loadSavedLocalBadNames() {
-    if (!IS_LOCAL_STORAGE_AVAILABLE) return {};
-    const localBadNames = localStorage.getItem(LOCAL_BAD_NAMES_KEY);
-    try {
-        return (localBadNames && JSON.parse(localBadNames)) || {};
-    } catch (e) {
-        localStorage.removeItem(LOCAL_BAD_NAMES_KEY);
-    }
-    return {};
-}
-
-function saveLocalBadNames(badNames) {
-    if (!IS_LOCAL_STORAGE_AVAILABLE) return;
-    localStorage.setItem(LOCAL_BAD_NAMES_KEY, JSON.stringify(badNames));
-}
-
-function reportBadName(badName, wordlist, reporterName) {
-    if (reachedReportingLimit()) return;
-    makeLeaderboardRequest(
-        getTimezonelessLocalDate(new Date()),
-        wordlist,
-        noop,
-        noop,
-        { badName, reporterName },
-        '/badname',
-    );
-    addToReportCount();
-}
-
-const REPORT_TIMEOUT_IN_MS = 12 /* hours */ * 60 /* min/hour */ * 60 /* sec/min */ * 1000; /* ms */
-const NUMBER_OF_REPORTS_ALLOWED_IN_ONE_DAY = 5;
-
-function reachedReportingLimit() {
-    const recentReports = getRecentReports(); // TODO maybe shouldn't fetch from localstorage every time?
-    if (recentReports.length < NUMBER_OF_REPORTS_ALLOWED_IN_ONE_DAY) {
-        return false;
-    }
-    const oldestReportDate = new Date(recentReports[recentReports.length - 1]);
-    return +oldestReportDate > (+now() - REPORT_TIMEOUT_IN_MS);
-}
-
-function addToReportCount() {
-    if (!IS_LOCAL_STORAGE_AVAILABLE) return;
-    let recentReports = getRecentReports();
-    recentReports.unshift(new Date());
-    recentReports = recentReports.slice(0, NUMBER_OF_REPORTS_ALLOWED_IN_ONE_DAY);
-    localStorage.setItem(REPORT_DATE_KEY, JSON.stringify(recentReports));
-}
-
-function getRecentReports() {
-    if (!IS_LOCAL_STORAGE_AVAILABLE) return [];
-    const json = localStorage.getItem(REPORT_DATE_KEY);
-    try { // FIXME need to centralize this and stop copy-pastaing it
-        return (json && JSON.parse(json)) || [];
-    } catch (e) {
-        localStorage.removeItem(REPORT_DATE_KEY);
-    }
-    return [];
-}
-
-function noop() {}
+function noop() { }
 
 const throttledHandleScroll = throttle(handleScroll, 100);
 
