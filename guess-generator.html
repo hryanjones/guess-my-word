@@ -28,17 +28,17 @@
 <pre>
 // in JS console
 
-# List 1
+# List 1 ✔️
 
 copy("'" + possibleWords.normal.slice(3,529).join("',\n'") + "',");
 copy("'" + possibleWords.hard.slice(3,529).join("',\n'") + "',")
 
-# List 2
+# List 2 ✔️
 
 copy("'" + possibleWords.normal.slice(529,1055).join("',\n'") + "',");
 copy("'" + possibleWords.hard.slice(529,1055).join("',\n'") + "',");
 
-# List 3
+# List 3 👈 **next time**
 
 copy("'" + possibleWords.normal.slice(1055,1581).join("',\n'") + "',");
 copy("'" + possibleWords.hard.slice(1055,1581).join("',\n'") + "',");
@@ -152,7 +152,7 @@ cat backupLeaderboards/*hard.csv | grep -v timeInMilliSeconds | sed -e 's/^.*,"/
             // textarea.selectionEnd = cursorPosition - 1;
         }
         textarea.value = textarea.value.replace(lineText + '\n', '');
-        
+
         textarea.selectionStart = 2;
         textarea.selectionEnd = textarea.selectionStart;
 
