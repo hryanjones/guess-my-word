@@ -213,7 +213,11 @@ function getLeaders() {
         }
         this.error = '';
         if (this.leaders.length === 0) {
-            this.message = 'nobody has guessed the word for today';
+            if (date === 'ALL') {
+                this.message = 'Appears the server is still processing. Check back in a few minutes.';
+            } else {
+                this.message = 'nobody has guessed the word for today';
+            }
             this.leaders = [EMPTY_LEADER];
         } else {
             this.onSearch();

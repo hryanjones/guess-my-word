@@ -5,7 +5,8 @@ const useProdBackend = urlParams.get('useProd') === ''
 const BOARD_SERVER = useProdBackend
     // ? 'https://home.hryanjones.com'
     ? 'https://ec2.hryanjones.com'
-    : 'https://192.168.0.144';
+    : 'http://localhost:8080';
+    // : 'https://192.168.0.144';
 // const BOARD_SERVER = 'https://hryanjones.builtwithdark.com';
 // const BAD_NAMES_SERVER = 'https://hryanjones.builtwithdark.com/gmw/bad-names';
 
