@@ -1,101 +1,100 @@
-/*!
- * wordcloud2.js
- * http://timdream.org/wordcloud2.js/
- *
- * Copyright 2011 - 2019 Tim Guan-tin Chien and contributors.
- * Released under the MIT license
- */
-
-'use strict';
-
 // setImmediate
 if (!window.setImmediate) {
   window.setImmediate = (function setupSetImmediate() {
-    return window.msSetImmediate ||
-    window.webkitSetImmediate ||
-    window.mozSetImmediate ||
-    window.oSetImmediate ||
-    (function setupSetZeroTimeout() {
-      if (!window.postMessage || !window.addEventListener) {
-        return null;
+    return (
+      window.msSetImmediate ||
+      window.webkitSetImmediate ||
+      window.mozSetImmediate ||
+      window.oSetImmediate ||
+      (function setupSetZeroTimeout() {
+        if (!window.postMessage || !window.addEventListener) {
+          return null;
+        }
+
+        const callbacks = [undefined];
+        const message = 'zero-timeout-message';
+
+        // Like setTimeout, but only takes a function argument.  There's
+        // no time argument (always zero) and no arguments (you have to
+        // use a closure).
+        const setZeroTimeout = function setZeroTimeout(callback) {
+          const id = callbacks.length;
+          callbacks.push(callback);
+          window.postMessage(message + id.toString(36), '*');
+
+          return id;
+        };
+
+        window.addEventListener(
+          'message',
+          function setZeroTimeoutMessage(evt) {
+            // Skipping checking event source, retarded IE confused this window
+            // object with another in the presence of iframe
+            if (
+              typeof evt.data !== 'string' ||
+              evt.data.substr(0, message.length) !== message /* ||
+            evt.source !== window */
+            ) {
+              return;
+            }
+
+            evt.stopImmediatePropagation();
+
+            const id = Number.parseInt(evt.data.substr(message.length), 36);
+            if (!callbacks[id]) {
+              return;
+            }
+
+            callbacks[id]();
+            callbacks[id] = undefined;
+          },
+          true,
+        );
+
+        /* specify clearImmediate() here since we need the scope */
+        window.clearImmediate = function clearZeroTimeout(id) {
+          if (!callbacks[id]) {
+            return;
+          }
+
+          callbacks[id] = undefined;
+        };
+
+        return setZeroTimeout;
+      })() ||
+      // fallback
+      function setImmediateFallback(fn) {
+        window.setTimeout(fn, 0);
       }
-
-      var callbacks = [undefined];
-      var message = 'zero-timeout-message';
-
-      // Like setTimeout, but only takes a function argument.  There's
-      // no time argument (always zero) and no arguments (you have to
-      // use a closure).
-      var setZeroTimeout = function setZeroTimeout(callback) {
-        var id = callbacks.length;
-        callbacks.push(callback);
-        window.postMessage(message + id.toString(36), '*');
-
-        return id;
-      };
-
-      window.addEventListener('message', function setZeroTimeoutMessage(evt) {
-        // Skipping checking event source, retarded IE confused this window
-        // object with another in the presence of iframe
-        if (typeof evt.data !== 'string' ||
-            evt.data.substr(0, message.length) !== message/* ||
-            evt.source !== window */) {
-          return;
-        }
-
-        evt.stopImmediatePropagation();
-
-        var id = parseInt(evt.data.substr(message.length), 36);
-        if (!callbacks[id]) {
-          return;
-        }
-
-        callbacks[id]();
-        callbacks[id] = undefined;
-      }, true);
-
-      /* specify clearImmediate() here since we need the scope */
-      window.clearImmediate = function clearZeroTimeout(id) {
-        if (!callbacks[id]) {
-          return;
-        }
-
-        callbacks[id] = undefined;
-      };
-
-      return setZeroTimeout;
-    })() ||
-    // fallback
-    function setImmediateFallback(fn) {
-      window.setTimeout(fn, 0);
-    };
+    );
   })();
 }
 
 if (!window.clearImmediate) {
   window.clearImmediate = (function setupClearImmediate() {
-    return window.msClearImmediate ||
-    window.webkitClearImmediate ||
-    window.mozClearImmediate ||
-    window.oClearImmediate ||
-    // "clearZeroTimeout" is implement on the previous block ||
-    // fallback
-    function clearImmediateFallback(timer) {
-      window.clearTimeout(timer);
-    };
+    return (
+      window.msClearImmediate ||
+      window.webkitClearImmediate ||
+      window.mozClearImmediate ||
+      window.oClearImmediate ||
+      // "clearZeroTimeout" is implement on the previous block ||
+      // fallback
+      function clearImmediateFallback(timer) {
+        window.clearTimeout(timer);
+      }
+    );
   })();
 }
 
-(function(global) {
-
+((global) => {
   // Check if WordCloud can run on this browser
-  var isSupported = (function isSupported() {
-    var canvas = document.createElement('canvas');
+  const isSupported = (function isSupported() {
+    const canvas = document.createElement('canvas');
     if (!canvas || !canvas.getContext) {
       return false;
     }
 
-    var ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     if (!ctx) {
       return false;
     }
@@ -114,28 +113,28 @@ if (!window.clearImmediate) {
     }
 
     return true;
-  }());
+  })();
 
   // Find out if the browser impose minium font size by
   // drawing small texts on a canvas and measure it's width.
-  var minFontSize = (function getMinFontSize() {
+  const minFontSize = (function getMinFontSize() {
     if (!isSupported) {
       return;
     }
 
-    var ctx = document.createElement('canvas').getContext('2d');
+    const ctx = document.createElement('canvas').getContext('2d');
 
     // start from 20
-    var size = 20;
+    let size = 20;
 
     // two sizes to measure
-    var hanWidth, mWidth;
+    let hanWidth;
+    let mWidth;
 
     while (size) {
-      ctx.font = size.toString(10) + 'px sans-serif';
-      if ((ctx.measureText('\uFF37').width === hanWidth) &&
-          (ctx.measureText('m').width) === mWidth) {
-        return (size + 1);
+      ctx.font = `${size.toString(10)}px sans-serif`;
+      if (ctx.measureText('\uFF37').width === hanWidth && ctx.measureText('m').width === mWidth) {
+        return size + 1;
       }
 
       hanWidth = ctx.measureText('\uFF37').width;
@@ -148,15 +147,12 @@ if (!window.clearImmediate) {
   })();
 
   // Based on http://jsfromhell.com/array/shuffle
-  var shuffleArray = function shuffleArray(arr) {
-    for (var j, x, i = arr.length; i;
-      j = Math.floor(Math.random() * i),
-      x = arr[--i], arr[i] = arr[j],
-      arr[j] = x) {}
+  const shuffleArray = function shuffleArray(arr) {
+    for (let j, x, i = arr.length; i; j = Math.floor(Math.random() * i), x = arr[--i], arr[i] = arr[j], arr[j] = x) {}
     return arr;
   };
 
-  var WordCloud = function WordCloud(elements, options) {
+  const WordCloud = function WordCloud(elements, options) {
     if (!isSupported) {
       return;
     }
@@ -165,7 +161,7 @@ if (!window.clearImmediate) {
       elements = [elements];
     }
 
-    elements.forEach(function(el, i) {
+    elements.forEach((el, i) => {
       if (typeof el === 'string') {
         elements[i] = document.getElementById(el);
         if (!elements[i]) {
@@ -177,16 +173,16 @@ if (!window.clearImmediate) {
     });
 
     /* Default values to be overwritten by options object */
-    var settings = {
+    const settings = {
       list: [],
-      fontFamily: '"Trebuchet MS", "Heiti TC", "微軟正黑體", ' +
-                  '"Arial Unicode MS", "Droid Fallback Sans", sans-serif',
+      fontFamily:
+        '"Trebuchet MS", "Heiti TC", "微軟正黑體", ' + '"Arial Unicode MS", "Droid Fallback Sans", sans-serif',
       fontWeight: 'normal',
       color: 'random-dark',
       minSize: 0, // 0 to disable
       weightFactor: 1,
       clearCanvas: true,
-      backgroundColor: '#fff',  // opaque white = rgba(255, 255, 255, 1)
+      backgroundColor: '#fff', // opaque white = rgba(255, 255, 255, 1)
 
       gridSize: 8,
       drawOutOfBound: false,
@@ -201,7 +197,7 @@ if (!window.clearImmediate) {
       abortThreshold: 0, // disabled
       abort: function noop() {},
 
-      minRotation: - Math.PI / 2,
+      minRotation: -Math.PI / 2,
       maxRotation: Math.PI / 2,
       rotationSteps: 0,
 
@@ -214,11 +210,11 @@ if (!window.clearImmediate) {
       classes: null,
 
       hover: null,
-      click: null
+      click: null,
     };
 
     if (options) {
-      for (var key in options) {
+      for (const key in options) {
         if (key in settings) {
           settings[key] = options[key];
         }
@@ -227,7 +223,7 @@ if (!window.clearImmediate) {
 
     /* Convert weightFactor into a function */
     if (typeof settings.weightFactor !== 'function') {
-      var factor = settings.weightFactor;
+      const factor = settings.weightFactor;
       settings.weightFactor = function weightFactor(pt) {
         return pt * factor; //in px
       };
@@ -236,7 +232,6 @@ if (!window.clearImmediate) {
     /* Convert shape into a function */
     if (typeof settings.shape !== 'function') {
       switch (settings.shape) {
-        case 'circle':
         /* falls through */
         default:
           // 'circle' is the default and a shortcut in the code loop.
@@ -266,7 +261,7 @@ if (!window.clearImmediate) {
           // %28t%2C+PI%2F2%29%29%2Bsin%28mod+%28t%2C+PI%2F2%29%29%29%2C+t+%3D
           // +0+..+2*PI
           settings.shape = function shapeSquare(theta) {
-            var thetaPrime = theta % (2 * Math.PI / 4);
+            const thetaPrime = theta % ((2 * Math.PI) / 4);
             return 1 / (Math.cos(thetaPrime) + Math.sin(thetaPrime));
           };
           break;
@@ -275,10 +270,7 @@ if (!window.clearImmediate) {
           // http://www.wolframalpha.com/input/?i=plot+r+%3D+min(1%2Fabs(cos(t
           // )),1%2Fabs(sin(t)))),+t+%3D+0+..+2*PI
           settings.shape = function shapeSquare(theta) {
-            return Math.min(
-              1 / Math.abs(Math.cos(theta)),
-              1 / Math.abs(Math.sin(theta))
-            );
+            return Math.min(1 / Math.abs(Math.cos(theta)), 1 / Math.abs(Math.sin(theta)));
           };
           break;
 
@@ -287,39 +279,35 @@ if (!window.clearImmediate) {
           // %28t%2C+2*PI%2F3%29%29%2Bsqrt%283%29sin%28mod+%28t%2C+2*PI%2F3%29
           // %29%29%2C+t+%3D+0+..+2*PI
           settings.shape = function shapeTriangle(theta) {
-            var thetaPrime = theta % (2 * Math.PI / 3);
-            return 1 / (Math.cos(thetaPrime) +
-                        Math.sqrt(3) * Math.sin(thetaPrime));
+            const thetaPrime = theta % ((2 * Math.PI) / 3);
+            return 1 / (Math.cos(thetaPrime) + Math.sqrt(3) * Math.sin(thetaPrime));
           };
           break;
 
         case 'triangle':
         case 'triangle-upright':
           settings.shape = function shapeTriangle(theta) {
-            var thetaPrime = (theta + Math.PI * 3 / 2) % (2 * Math.PI / 3);
-            return 1 / (Math.cos(thetaPrime) +
-                        Math.sqrt(3) * Math.sin(thetaPrime));
+            const thetaPrime = (theta + (Math.PI * 3) / 2) % ((2 * Math.PI) / 3);
+            return 1 / (Math.cos(thetaPrime) + Math.sqrt(3) * Math.sin(thetaPrime));
           };
           break;
 
         case 'pentagon':
           settings.shape = function shapePentagon(theta) {
-            var thetaPrime = (theta + 0.955) % (2 * Math.PI / 5);
-            return 1 / (Math.cos(thetaPrime) +
-                        0.726543 * Math.sin(thetaPrime));
+            const thetaPrime = (theta + 0.955) % ((2 * Math.PI) / 5);
+            return 1 / (Math.cos(thetaPrime) + 0.726543 * Math.sin(thetaPrime));
           };
           break;
 
         case 'star':
           settings.shape = function shapeStar(theta) {
-            var thetaPrime = (theta + 0.955) % (2 * Math.PI / 10);
-            if ((theta + 0.955) % (2 * Math.PI / 5) - (2 * Math.PI / 10) >= 0) {
-              return 1 / (Math.cos((2 * Math.PI / 10) - thetaPrime) +
-                          3.07768 * Math.sin((2 * Math.PI / 10) - thetaPrime));
-            } else {
-              return 1 / (Math.cos(thetaPrime) +
-                          3.07768 * Math.sin(thetaPrime));
+            const thetaPrime = (theta + 0.955) % ((2 * Math.PI) / 10);
+            if (((theta + 0.955) % ((2 * Math.PI) / 5)) - (2 * Math.PI) / 10 >= 0) {
+              return (
+                1 / (Math.cos((2 * Math.PI) / 10 - thetaPrime) + 3.07768 * Math.sin((2 * Math.PI) / 10 - thetaPrime))
+              );
             }
+            return 1 / (Math.cos(thetaPrime) + 3.07768 * Math.sin(thetaPrime));
           };
           break;
       }
@@ -329,30 +317,28 @@ if (!window.clearImmediate) {
     settings.gridSize = Math.max(Math.floor(settings.gridSize), 4);
 
     /* shorthand */
-    var g = settings.gridSize;
-    var maskRectWidth = g - settings.maskGapWidth;
+    const g = settings.gridSize;
+    const maskRectWidth = g - settings.maskGapWidth;
 
     /* normalize rotation settings */
-    var rotationRange = Math.abs(settings.maxRotation - settings.minRotation);
-    var rotationSteps = Math.abs(Math.floor(settings.rotationSteps));
-    var minRotation = Math.min(settings.maxRotation, settings.minRotation);
+    const rotationRange = Math.abs(settings.maxRotation - settings.minRotation);
+    const rotationSteps = Math.abs(Math.floor(settings.rotationSteps));
+    const minRotation = Math.min(settings.maxRotation, settings.minRotation);
 
     /* information/object available to all functions, set when start() */
-    var grid, // 2d array containing filling information
-      ngx, ngy, // width and height of the grid
-      center, // position of the center of the cloud
-      maxRadius;
+    let grid; // 2d array containing filling information
+    let ngx;
+    let ngy; // width and height of the grid
+    let center; // position of the center of the cloud
+    let maxRadius;
 
     /* timestamp for measuring each putWord() action */
-    var escapeTime;
+    let escapeTime;
 
     /* function for getting the color of the text */
-    var getTextColor;
+    let getTextColor;
     function random_hsl_color(min, max) {
-      return 'hsl(' +
-        (Math.random() * 360).toFixed() + ',' +
-        (Math.random() * 30 + 70).toFixed() + '%,' +
-        (Math.random() * (max - min) + min).toFixed() + '%)';
+      return `hsl(${(Math.random() * 360).toFixed()},${(Math.random() * 30 + 70).toFixed()}%,${(Math.random() * (max - min) + min).toFixed()}%)`;
     }
     switch (settings.color) {
       case 'random-dark':
@@ -375,28 +361,27 @@ if (!window.clearImmediate) {
     }
 
     /* function for getting the font-weight of the text */
-    var getTextFontWeight;
+    let getTextFontWeight;
     if (typeof settings.fontWeight === 'function') {
       getTextFontWeight = settings.fontWeight;
     }
 
     /* function for getting the classes of the text */
-    var getTextClasses = null;
+    let getTextClasses = null;
     if (typeof settings.classes === 'function') {
       getTextClasses = settings.classes;
     }
 
     /* Interactive */
-    var interactive = false;
-    var infoGrid = [];
-    var hovered;
+    let interactive = false;
+    const infoGrid = [];
+    let hovered;
 
-    var getInfoGridFromMouseTouchEvent =
-    function getInfoGridFromMouseTouchEvent(evt) {
-      var canvas = evt.currentTarget;
-      var rect = canvas.getBoundingClientRect();
-      var clientX;
-      var clientY;
+    const getInfoGridFromMouseTouchEvent = function getInfoGridFromMouseTouchEvent(evt) {
+      const canvas = evt.currentTarget;
+      const rect = canvas.getBoundingClientRect();
+      let clientX;
+      let clientY;
       /** Detect if touches are available */
       if (evt.touches) {
         clientX = evt.touches[0].clientX;
@@ -405,17 +390,17 @@ if (!window.clearImmediate) {
         clientX = evt.clientX;
         clientY = evt.clientY;
       }
-      var eventX = clientX - rect.left;
-      var eventY = clientY - rect.top;
+      const eventX = clientX - rect.left;
+      const eventY = clientY - rect.top;
 
-      var x = Math.floor(eventX * ((canvas.width / rect.width) || 1) / g);
-      var y = Math.floor(eventY * ((canvas.height / rect.height) || 1) / g);
+      const x = Math.floor((eventX * (canvas.width / rect.width || 1)) / g);
+      const y = Math.floor((eventY * (canvas.height / rect.height || 1)) / g);
 
       return infoGrid[x][y];
     };
 
-    var wordcloudhover = function wordcloudhover(evt) {
-      var info = getInfoGridFromMouseTouchEvent(evt);
+    const wordcloudhover = function wordcloudhover(evt) {
+      const info = getInfoGridFromMouseTouchEvent(evt);
 
       if (hovered === info) {
         return;
@@ -429,11 +414,10 @@ if (!window.clearImmediate) {
       }
 
       settings.hover(info.item, info.dimension, evt);
-
     };
 
-    var wordcloudclick = function wordcloudclick(evt) {
-      var info = getInfoGridFromMouseTouchEvent(evt);
+    const wordcloudclick = function wordcloudclick(evt) {
+      const info = getInfoGridFromMouseTouchEvent(evt);
       if (!info) {
         return;
       }
@@ -443,18 +427,18 @@ if (!window.clearImmediate) {
     };
 
     /* Get points on the grid for a given radius away from the center */
-    var pointsAtRadius = [];
-    var getPointsAtRadius = function getPointsAtRadius(radius) {
+    const pointsAtRadius = [];
+    const getPointsAtRadius = function getPointsAtRadius(radius) {
       if (pointsAtRadius[radius]) {
         return pointsAtRadius[radius];
       }
 
       // Look for these number of points on each radius
-      var T = radius * 8;
+      const T = radius * 8;
 
       // Getting all the points at this radius
-      var t = T;
-      var points = [];
+      let t = T;
+      const points = [];
 
       if (radius === 0) {
         points.push([center[0], center[1], 0]);
@@ -462,17 +446,17 @@ if (!window.clearImmediate) {
 
       while (t--) {
         // distort the radius to put the cloud in shape
-        var rx = 1;
+        let rx = 1;
         if (settings.shape !== 'circle') {
-          rx = settings.shape(t / T * 2 * Math.PI); // 0 to 1
+          rx = settings.shape((t / T) * 2 * Math.PI); // 0 to 1
         }
 
         // Push [x, y, t]; t is used solely for getTextColor()
         points.push([
-          center[0] + radius * rx * Math.cos(-t / T * 2 * Math.PI),
-          center[1] + radius * rx * Math.sin(-t / T * 2 * Math.PI) *
-            settings.ellipticity,
-          t / T * 2 * Math.PI]);
+          center[0] + radius * rx * Math.cos((-t / T) * 2 * Math.PI),
+          center[1] + radius * rx * Math.sin((-t / T) * 2 * Math.PI) * settings.ellipticity,
+          (t / T) * 2 * Math.PI,
+        ]);
       }
 
       pointsAtRadius[radius] = points;
@@ -480,13 +464,12 @@ if (!window.clearImmediate) {
     };
 
     /* Return true if we had spent too much time */
-    var exceedTime = function exceedTime() {
-      return ((settings.abortThreshold > 0) &&
-        ((new Date()).getTime() - escapeTime > settings.abortThreshold));
+    const exceedTime = function exceedTime() {
+      return settings.abortThreshold > 0 && new Date().getTime() - escapeTime > settings.abortThreshold;
     };
 
     /* Get the deg of rotation according to settings, and luck. */
-    var getRotateDeg = function getRotateDeg() {
+    const getRotateDeg = function getRotateDeg() {
       if (settings.rotateRatio === 0) {
         return 0;
       }
@@ -501,21 +484,17 @@ if (!window.clearImmediate) {
 
       if (rotationSteps > 0) {
         // Min rotation + zero or more steps * span of one step
-        return minRotation +
-          Math.floor(Math.random() * rotationSteps) *
-          rotationRange / (rotationSteps - 1);
+        return minRotation + (Math.floor(Math.random() * rotationSteps) * rotationRange) / (rotationSteps - 1);
       }
-      else {
-        return minRotation + Math.random() * rotationRange;
-      }
+      return minRotation + Math.random() * rotationRange;
     };
 
-    var getTextInfo = function getTextInfo(word, weight, rotateDeg) {
+    const getTextInfo = function getTextInfo(word, weight, rotateDeg) {
       // calculate the acutal font size
       // fontSize === 0 means weightFactor function wants the text skipped,
       // and size < minSize means we cannot draw the text.
-      var debug = false;
-      var fontSize = settings.weightFactor(weight);
+      const debug = false;
+      const fontSize = settings.weightFactor(weight);
       if (fontSize <= settings.minSize) {
         return false;
       }
@@ -523,10 +502,10 @@ if (!window.clearImmediate) {
       // Scale factor here is to make sure fillText is not limited by
       // the minium font size set by browser.
       // It will always be 1 or 2n.
-      var mu = 1;
+      let mu = 1;
       if (fontSize < minFontSize) {
         mu = (function calculateScaleFactor() {
-          var mu = 2;
+          let mu = 2;
           while (mu * fontSize < minFontSize) {
             mu += 2;
           }
@@ -535,31 +514,28 @@ if (!window.clearImmediate) {
       }
 
       // Get fontWeight that will be used to set fctx.font
-      var fontWeight;
+      let fontWeight;
       if (getTextFontWeight) {
         fontWeight = getTextFontWeight(word, weight, fontSize);
       } else {
         fontWeight = settings.fontWeight;
       }
 
-      var fcanvas = document.createElement('canvas');
-      var fctx = fcanvas.getContext('2d', { willReadFrequently: true });
+      const fcanvas = document.createElement('canvas');
+      const fctx = fcanvas.getContext('2d', { willReadFrequently: true });
 
-      fctx.font = fontWeight + ' ' +
-        (fontSize * mu).toString(10) + 'px ' + settings.fontFamily;
+      fctx.font = `${fontWeight} ${(fontSize * mu).toString(10)}px ${settings.fontFamily}`;
 
       // Estimate the dimension of the text with measureText().
-      var fw = fctx.measureText(word).width / mu;
-      var fh = Math.max(fontSize * mu,
-                        fctx.measureText('m').width,
-                        fctx.measureText('\uFF37').width) / mu;
+      const fw = fctx.measureText(word).width / mu;
+      const fh = Math.max(fontSize * mu, fctx.measureText('m').width, fctx.measureText('\uFF37').width) / mu;
 
       // Create a boundary box that is larger than our estimates,
       // so text don't get cut of (it sill might)
-      var boxWidth = fw + fh * 2;
-      var boxHeight = fh * 3;
-      var fgw = Math.ceil(boxWidth / g);
-      var fgh = Math.ceil(boxHeight / g);
+      let boxWidth = fw + fh * 2;
+      let boxHeight = fh * 3;
+      const fgw = Math.ceil(boxWidth / g);
+      const fgh = Math.ceil(boxHeight / g);
       boxWidth = fgw * g;
       boxHeight = fgh * g;
 
@@ -567,19 +543,17 @@ if (!window.clearImmediate) {
       // the preferred position.
 
       // This is simply half of the width.
-      var fillTextOffsetX = - fw / 2;
+      const fillTextOffsetX = -fw / 2;
       // Instead of moving the box to the exact middle of the preferred
       // position, for Y-offset we move 0.4 instead, so Latin alphabets look
       // vertical centered.
-      var fillTextOffsetY = - fh * 0.4;
+      const fillTextOffsetY = -fh * 0.4;
 
       // Calculate the actual dimension of the canvas, considering the rotation.
-      var cgh = Math.ceil((boxWidth * Math.abs(Math.sin(rotateDeg)) +
-                           boxHeight * Math.abs(Math.cos(rotateDeg))) / g);
-      var cgw = Math.ceil((boxWidth * Math.abs(Math.cos(rotateDeg)) +
-                           boxHeight * Math.abs(Math.sin(rotateDeg))) / g);
-      var width = cgw * g;
-      var height = cgh * g;
+      const cgh = Math.ceil((boxWidth * Math.abs(Math.sin(rotateDeg)) + boxHeight * Math.abs(Math.cos(rotateDeg))) / g);
+      const cgw = Math.ceil((boxWidth * Math.abs(Math.cos(rotateDeg)) + boxHeight * Math.abs(Math.sin(rotateDeg))) / g);
+      const width = cgw * g;
+      const height = cgh * g;
 
       fcanvas.setAttribute('width', width);
       fcanvas.setAttribute('height', height);
@@ -593,13 +567,12 @@ if (!window.clearImmediate) {
 
       // Scale the canvas with |mu|.
       fctx.scale(1 / mu, 1 / mu);
-      fctx.translate(width * mu / 2, height * mu / 2);
-      fctx.rotate(- rotateDeg);
+      fctx.translate((width * mu) / 2, (height * mu) / 2);
+      fctx.rotate(-rotateDeg);
 
       // Once the width/height is set, ctx info will be reset.
       // Set it again here.
-      fctx.font = fontWeight + ' ' +
-        (fontSize * mu).toString(10) + 'px ' + settings.fontFamily;
+      fctx.font = `${fontWeight} ${(fontSize * mu).toString(10)}px ${settings.fontFamily}`;
 
       // Fill the text into the fcanvas.
       // XXX: We cannot because textBaseline = 'top' here because
@@ -609,11 +582,10 @@ if (!window.clearImmediate) {
       // 0.5 * fontSize lower.
       fctx.fillStyle = '#000';
       fctx.textBaseline = 'middle';
-      fctx.fillText(word, fillTextOffsetX * mu,
-                    (fillTextOffsetY + fontSize * 0.5) * mu);
+      fctx.fillText(word, fillTextOffsetX * mu, (fillTextOffsetY + fontSize * 0.5) * mu);
 
       // Get the pixels of the text
-      var imageData = fctx.getImageData(0, 0, width, height).data;
+      const imageData = fctx.getImageData(0, 0, width, height).data;
 
       if (exceedTime()) {
         return false;
@@ -621,15 +593,17 @@ if (!window.clearImmediate) {
 
       if (debug) {
         // Draw the box of the original estimation
-        fctx.strokeRect(fillTextOffsetX * mu,
-                        fillTextOffsetY, fw * mu, fh * mu);
+        fctx.strokeRect(fillTextOffsetX * mu, fillTextOffsetY, fw * mu, fh * mu);
         fctx.restore();
       }
 
       // Read the pixels and save the information to the occupied array
-      var occupied = [];
-      var gx = cgw, gy, x, y;
-      var bounds = [cgh / 2, cgw / 2, cgh / 2, cgw / 2];
+      const occupied = [];
+      let gx = cgw;
+      let gy;
+      let x;
+      let y;
+      const bounds = [cgh / 2, cgw / 2, cgh / 2, cgw / 2];
       while (gx--) {
         gy = cgh;
         while (gy--) {
@@ -638,8 +612,7 @@ if (!window.clearImmediate) {
             while (y--) {
               x = g;
               while (x--) {
-                if (imageData[((gy * g + y) * width +
-                               (gx * g + x)) * 4 + 3]) {
+                if (imageData[((gy * g + y) * width + (gx * g + x)) * 4 + 3]) {
                   occupied.push([gx, gy]);
 
                   if (gx < bounds[3]) {
@@ -673,10 +646,7 @@ if (!window.clearImmediate) {
 
       if (debug) {
         fctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
-        fctx.fillRect(bounds[3] * g,
-                      bounds[0] * g,
-                      (bounds[1] - bounds[3] + 1) * g,
-                      (bounds[2] - bounds[0] + 1) * g);
+        fctx.fillRect(bounds[3] * g, bounds[0] * g, (bounds[1] - bounds[3] + 1) * g, (bounds[2] - bounds[0] + 1) * g);
       }
 
       // Return information needed to create the text on the real canvas
@@ -690,18 +660,18 @@ if (!window.clearImmediate) {
         fillTextOffsetY: fillTextOffsetY,
         fillTextWidth: fw,
         fillTextHeight: fh,
-        fontSize: fontSize
+        fontSize: fontSize,
       };
     };
 
     /* Determine if there is room available in the given dimension */
-    var canFitText = function canFitText(gx, gy, gw, gh, occupied) {
+    const canFitText = function canFitText(gx, gy, gw, gh, occupied) {
       // Go through the occupied points,
       // return false if the space is not available.
-      var i = occupied.length;
+      let i = occupied.length;
       while (i--) {
-        var px = gx + occupied[i][0];
-        var py = gy + occupied[i][1];
+        const px = gx + occupied[i][0];
+        const py = gy + occupied[i][1];
 
         if (px >= ngx || py >= ngy || px < 0 || py < 0) {
           if (!settings.drawOutOfBound) {
@@ -718,11 +688,9 @@ if (!window.clearImmediate) {
     };
 
     /* Actually draw the text on the grid */
-    var drawText = function drawText(gx, gy, info, word, weight,
-                                     distance, theta, rotateDeg, attributes) {
-
-      var fontSize = info.fontSize;
-      var color;
+    const drawText = function drawText(gx, gy, info, word, weight, distance, theta, rotateDeg, attributes) {
+      const fontSize = info.fontSize;
+      let color;
       if (getTextColor) {
         color = getTextColor(word, weight, fontSize, distance, theta);
       } else {
@@ -730,49 +698,47 @@ if (!window.clearImmediate) {
       }
 
       // get fontWeight that will be used to set ctx.font and font style rule
-      var fontWeight;
+      let fontWeight;
       if (getTextFontWeight) {
         fontWeight = getTextFontWeight(word, weight, fontSize);
       } else {
         fontWeight = settings.fontWeight;
       }
 
-      var classes;
+      let classes;
       if (getTextClasses) {
         classes = getTextClasses(word, weight, fontSize);
       } else {
         classes = settings.classes;
       }
 
-      var dimension;
-      var bounds = info.bounds;
+      let dimension;
+      const bounds = info.bounds;
       dimension = {
         x: (gx + bounds[3]) * g,
         y: (gy + bounds[0]) * g,
         w: (bounds[1] - bounds[3] + 1) * g,
-        h: (bounds[2] - bounds[0] + 1) * g
+        h: (bounds[2] - bounds[0] + 1) * g,
       };
 
-      elements.forEach(function(el) {
+      elements.forEach((el) => {
         if (el.getContext) {
-          var ctx = el.getContext('2d');
-          var mu = info.mu;
+          const ctx = el.getContext('2d');
+          const mu = info.mu;
 
           // Save the current state before messing it
           ctx.save();
           ctx.scale(1 / mu, 1 / mu);
 
-          ctx.font = fontWeight + ' ' +
-                     (fontSize * mu).toString(10) + 'px ' + settings.fontFamily;
+          ctx.font = `${fontWeight} ${(fontSize * mu).toString(10)}px ${settings.fontFamily}`;
           ctx.fillStyle = color;
 
           // Translate the canvas position to the origin coordinate of where
           // the text should be put.
-          ctx.translate((gx + info.gw / 2) * g * mu,
-                        (gy + info.gh / 2) * g * mu);
+          ctx.translate((gx + info.gw / 2) * g * mu, (gy + info.gh / 2) * g * mu);
 
           if (rotateDeg !== 0) {
-            ctx.rotate(- rotateDeg);
+            ctx.rotate(-rotateDeg);
           }
 
           // Finally, fill the text.
@@ -783,8 +749,7 @@ if (!window.clearImmediate) {
           // Here, we use textBaseline = 'middle' and draw the text at exactly
           // 0.5 * fontSize lower.
           ctx.textBaseline = 'middle';
-          ctx.fillText(word, info.fillTextOffsetX * mu,
-                             (info.fillTextOffsetY + fontSize * 0.5) * mu);
+          ctx.fillText(word, info.fillTextOffsetX * mu, (info.fillTextOffsetY + fontSize * 0.5) * mu);
 
           // The below box is always matches how <span>s are positioned
           /* ctx.strokeRect(info.fillTextOffsetX, info.fillTextOffsetY,
@@ -794,41 +759,38 @@ if (!window.clearImmediate) {
           ctx.restore();
         } else {
           // drawText on DIV element
-          var span = document.createElement('span');
-          var transformRule = '';
-          transformRule = 'rotate(' + (- rotateDeg / Math.PI * 180) + 'deg) ';
+          const span = document.createElement('span');
+          let transformRule = '';
+          transformRule = `rotate(${(-rotateDeg / Math.PI) * 180}deg) `;
           if (info.mu !== 1) {
-            transformRule +=
-              'translateX(-' + (info.fillTextWidth / 4) + 'px) ' +
-              'scale(' + (1 / info.mu) + ')';
+            transformRule += `translateX(-${info.fillTextWidth / 4}px) scale(${1 / info.mu})`;
           }
-          var styleRules = {
-            'position': 'absolute',
-            'display': 'block',
-            'font': fontWeight + ' ' +
-                    (fontSize * info.mu) + 'px ' + settings.fontFamily,
-            'left': ((gx + info.gw / 2) * g + info.fillTextOffsetX) + 'px',
-            'top': ((gy + info.gh / 2) * g + info.fillTextOffsetY) + 'px',
-            'width': info.fillTextWidth + 'px',
-            'height': info.fillTextHeight + 'px',
-            'lineHeight': fontSize + 'px',
-            'whiteSpace': 'nowrap',
-            'transform': transformRule,
-            'webkitTransform': transformRule,
-            'msTransform': transformRule,
-            'transformOrigin': '50% 40%',
-            'webkitTransformOrigin': '50% 40%',
-            'msTransformOrigin': '50% 40%'
+          const styleRules = {
+            position: 'absolute',
+            display: 'block',
+            font: `${fontWeight} ${fontSize * info.mu}px ${settings.fontFamily}`,
+            left: `${(gx + info.gw / 2) * g + info.fillTextOffsetX}px`,
+            top: `${(gy + info.gh / 2) * g + info.fillTextOffsetY}px`,
+            width: `${info.fillTextWidth}px`,
+            height: `${info.fillTextHeight}px`,
+            lineHeight: `${fontSize}px`,
+            whiteSpace: 'nowrap',
+            transform: transformRule,
+            webkitTransform: transformRule,
+            msTransform: transformRule,
+            transformOrigin: '50% 40%',
+            webkitTransformOrigin: '50% 40%',
+            msTransformOrigin: '50% 40%',
           };
           if (color) {
             styleRules.color = color;
           }
           span.textContent = word;
-          for (var cssProp in styleRules) {
+          for (const cssProp in styleRules) {
             span.style[cssProp] = styleRules[cssProp];
           }
           if (attributes) {
-            for (var attribute in attributes) {
+            for (const attribute in attributes) {
               span.setAttribute(attribute, attributes[attribute]);
             }
           }
@@ -841,7 +803,7 @@ if (!window.clearImmediate) {
     };
 
     /* Help function to updateGrid */
-    var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item) {
+    const fillGridAt = function fillGridAt(x, y, drawMask, dimension, item) {
       if (x >= ngx || y >= ngy || x < 0 || y < 0) {
         return;
       }
@@ -849,7 +811,7 @@ if (!window.clearImmediate) {
       grid[x][y] = false;
 
       if (drawMask) {
-        var ctx = elements[0].getContext('2d');
+        const ctx = elements[0].getContext('2d');
         ctx.fillRect(x * g, y * g, maskRectWidth, maskRectWidth);
       }
 
@@ -860,31 +822,31 @@ if (!window.clearImmediate) {
 
     /* Update the filling information of the given space with occupied points.
        Draw the mask on the canvas if necessary. */
-    var updateGrid = function updateGrid(gx, gy, gw, gh, info, item) {
-      var occupied = info.occupied;
-      var drawMask = settings.drawMask;
-      var ctx;
+    const updateGrid = function updateGrid(gx, gy, gw, gh, info, item) {
+      const occupied = info.occupied;
+      const drawMask = settings.drawMask;
+      let ctx;
       if (drawMask) {
         ctx = elements[0].getContext('2d');
         ctx.save();
         ctx.fillStyle = settings.maskColor;
       }
 
-      var dimension;
+      let dimension;
       if (interactive) {
-        var bounds = info.bounds;
+        const bounds = info.bounds;
         dimension = {
           x: (gx + bounds[3]) * g,
           y: (gy + bounds[0]) * g,
           w: (bounds[1] - bounds[3] + 1) * g,
-          h: (bounds[2] - bounds[0] + 1) * g
+          h: (bounds[2] - bounds[0] + 1) * g,
         };
       }
 
-      var i = occupied.length;
+      let i = occupied.length;
       while (i--) {
-        var px = gx + occupied[i][0];
-        var py = gy + occupied[i][1];
+        const px = gx + occupied[i][0];
+        const py = gy + occupied[i][1];
 
         if (px >= ngx || py >= ngy || px < 0 || py < 0) {
           continue;
@@ -901,8 +863,10 @@ if (!window.clearImmediate) {
     /* putWord() processes each item on the list,
        calculate it's size and determine it's position, and actually
        put it on the canvas. */
-    var putWord = function putWord(item) {
-      var word, weight, attributes;
+    const putWord = function putWord(item) {
+      let word;
+      let weight;
+      let attributes;
       if (Array.isArray(item)) {
         word = item[0];
         weight = item[1];
@@ -911,10 +875,10 @@ if (!window.clearImmediate) {
         weight = item.weight;
         attributes = item.attributes;
       }
-      var rotateDeg = getRotateDeg();
+      const rotateDeg = getRotateDeg();
 
       // get info needed to put the text onto the canvas
-      var info = getTextInfo(word, weight, rotateDeg);
+      const info = getTextInfo(word, weight, rotateDeg);
 
       // not getting the info means we shouldn't be drawing this one.
       if (!info) {
@@ -929,22 +893,21 @@ if (!window.clearImmediate) {
       // skip the loop if we have already know the bounding box of
       // word is larger than the canvas.
       if (!settings.drawOutOfBound) {
-        var bounds = info.bounds;
-        if ((bounds[1] - bounds[3] + 1) > ngx ||
-          (bounds[2] - bounds[0] + 1) > ngy) {
+        const bounds = info.bounds;
+        if (bounds[1] - bounds[3] + 1 > ngx || bounds[2] - bounds[0] + 1 > ngy) {
           return false;
         }
       }
 
       // Determine the position to put the text by
       // start looking for the nearest points
-      var r = maxRadius + 1;
+      let r = maxRadius + 1;
 
-      var tryToPutWordAtPoint = function(gxy) {
-        var gx = Math.floor(gxy[0] - info.gw / 2);
-        var gy = Math.floor(gxy[1] - info.gh / 2);
-        var gw = info.gw;
-        var gh = info.gh;
+      const tryToPutWordAtPoint = (gxy) => {
+        const gx = Math.floor(gxy[0] - info.gw / 2);
+        const gy = Math.floor(gxy[1] - info.gh / 2);
+        const gw = info.gw;
+        const gh = info.gh;
 
         // If we cannot fit the text at this position, return false
         // and go to the next position.
@@ -953,8 +916,7 @@ if (!window.clearImmediate) {
         }
 
         // Actually put the text on the canvas
-        drawText(gx, gy, info, word, weight,
-                 (maxRadius - r), gxy[2], rotateDeg, attributes);
+        drawText(gx, gy, info, word, weight, maxRadius - r, gxy[2], rotateDeg, attributes);
 
         // Mark the spaces on the grid as filled
         updateGrid(gx, gy, gw, gh, info, item);
@@ -964,7 +926,7 @@ if (!window.clearImmediate) {
       };
 
       while (r--) {
-        var points = getPointsAtRadius(maxRadius - r);
+        let points = getPointsAtRadius(maxRadius - r);
 
         if (settings.shuffle) {
           points = [].concat(points);
@@ -975,7 +937,7 @@ if (!window.clearImmediate) {
         // array.some() will stop and return true
         // when putWordAtPoint() returns true.
         // If all the points returns false, array.some() returns false.
-        var drawn = points.some(tryToPutWordAtPoint);
+        const drawn = points.some(tryToPutWordAtPoint);
 
         if (drawn) {
           // leave putWord() and return true
@@ -984,9 +946,9 @@ if (!window.clearImmediate) {
       }
       if (settings.shrinkToFit) {
         if (Array.isArray(item)) {
-          item[1] = item[1] * 3 / 4;
+          item[1] = (item[1] * 3) / 4;
         } else {
-          item.weight = item.weight * 3 / 4;
+          item.weight = (item.weight * 3) / 4;
         }
         return putWord(item);
       }
@@ -996,35 +958,34 @@ if (!window.clearImmediate) {
 
     /* Send DOM event to all elements. Will stop sending event and return
        if the previous one is canceled (for cancelable events). */
-    var sendEvent = function sendEvent(type, cancelable, details) {
+    const sendEvent = function sendEvent(type, cancelable, details) {
       if (cancelable) {
-        return !elements.some(function(el) {
-          var event = new CustomEvent(type, {
-            detail: details || {}
+        return !elements.some((el) => {
+          const event = new CustomEvent(type, {
+            detail: details || {},
           });
           return !el.dispatchEvent(event);
         }, this);
-      } else {
-        elements.forEach(function(el) {
-          var event = new CustomEvent(type, {
-            detail: details || {}
-          });
-          el.dispatchEvent(event);
-        }, this);
       }
+      elements.forEach((el) => {
+        const event = new CustomEvent(type, {
+          detail: details || {},
+        });
+        el.dispatchEvent(event);
+      }, this);
     };
 
     /* Start drawing on a canvas */
-    var start = function start() {
+    const start = function start() {
       // For dimensions, clearCanvas etc.,
       // we only care about the first element.
-      var canvas = elements[0];
+      const canvas = elements[0];
 
       if (canvas.getContext) {
         ngx = Math.ceil(canvas.width / g);
         ngy = Math.ceil(canvas.height / g);
       } else {
-        var rect = canvas.getBoundingClientRect();
+        const rect = canvas.getBoundingClientRect();
         ngx = Math.ceil(rect.width / g);
         ngy = Math.ceil(rect.height / g);
       }
@@ -1036,9 +997,7 @@ if (!window.clearImmediate) {
       }
 
       // Determine the center of the word cloud
-      center = (settings.origin) ?
-        [settings.origin[0]/g, settings.origin[1]/g] :
-        [ngx / 2, ngy / 2];
+      center = settings.origin ? [settings.origin[0] / g, settings.origin[1] / g] : [ngx / 2, ngy / 2];
 
       // Maxium radius to look for space
       maxRadius = Math.floor(Math.sqrt(ngx * ngx + ngy * ngy));
@@ -1047,11 +1006,13 @@ if (!window.clearImmediate) {
          if not, update the grid to the current canvas state */
       grid = [];
 
-      var gx, gy, i;
+      let gx;
+      let gy;
+      let i;
       if (!canvas.getContext || settings.clearCanvas) {
-        elements.forEach(function(el) {
+        elements.forEach((el) => {
           if (el.getContext) {
-            var ctx = el.getContext('2d');
+            const ctx = el.getContext('2d');
             ctx.fillStyle = settings.backgroundColor;
             ctx.clearRect(0, 0, ngx * (g + 1), ngy * (g + 1));
             ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
@@ -1074,20 +1035,20 @@ if (!window.clearImmediate) {
       } else {
         /* Determine bgPixel by creating
            another canvas and fill the specified background color. */
-        var bctx = document.createElement('canvas').getContext('2d');
+        let bctx = document.createElement('canvas').getContext('2d');
 
         bctx.fillStyle = settings.backgroundColor;
         bctx.fillRect(0, 0, 1, 1);
-        var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
+        let bgPixel = bctx.getImageData(0, 0, 1, 1).data;
 
         /* Read back the pixels of the canvas we got to tell which part of the
            canvas is empty.
            (no clearCanvas only works with a canvas, not divs) */
-        var imageData =
-          canvas.getContext('2d').getImageData(0, 0, ngx * g, ngy * g).data;
+        let imageData = canvas.getContext('2d').getImageData(0, 0, ngx * g, ngy * g).data;
 
         gx = ngx;
-        var x, y;
+        let x;
+        let y;
         while (gx--) {
           grid[gx] = [];
           gy = ngy;
@@ -1098,8 +1059,7 @@ if (!window.clearImmediate) {
               while (x--) {
                 i = 4;
                 while (i--) {
-                  if (imageData[((gy * g + y) * ngx * g +
-                                 (gx * g + x)) * 4 + i] !== bgPixel[i]) {
+                  if (imageData[((gy * g + y) * ngx * g + (gx * g + x)) * 4 + i] !== bgPixel[i]) {
                     grid[gx][gy] = false;
                     break singleGridLoop;
                   }
@@ -1117,7 +1077,6 @@ if (!window.clearImmediate) {
 
       // fill the infoGrid with empty state if we need it
       if (settings.hover || settings.click) {
-
         interactive = true;
 
         /* fill the grid with empty state */
@@ -1145,7 +1104,8 @@ if (!window.clearImmediate) {
       }
 
       i = 0;
-      var loopingFunction, stoppingFunction;
+      let loopingFunction;
+      let stoppingFunction;
       if (settings.wait !== 0) {
         loopingFunction = window.setTimeout;
         stoppingFunction = window.clearTimeout;
@@ -1154,26 +1114,26 @@ if (!window.clearImmediate) {
         stoppingFunction = window.clearImmediate;
       }
 
-      var addEventListener = function addEventListener(type, listener) {
-        elements.forEach(function(el) {
+      const addEventListener = function addEventListener(type, listener) {
+        elements.forEach((el) => {
           el.addEventListener(type, listener);
         }, this);
       };
 
-      var removeEventListener = function removeEventListener(type, listener) {
-        elements.forEach(function(el) {
+      const removeEventListener = function removeEventListener(type, listener) {
+        elements.forEach((el) => {
           el.removeEventListener(type, listener);
         }, this);
       };
 
-      var anotherWordCloudStart = function anotherWordCloudStart() {
+      const anotherWordCloudStart = function anotherWordCloudStart() {
         removeEventListener('wordcloudstart', anotherWordCloudStart);
         stoppingFunction(timer);
       };
 
       addEventListener('wordcloudstart', anotherWordCloudStart);
 
-      var timer = loopingFunction(function loop() {
+      let timer = loopingFunction(function loop() {
         if (i >= settings.list.length) {
           stoppingFunction(timer);
           sendEvent('wordcloudstop', false);
@@ -1181,10 +1141,12 @@ if (!window.clearImmediate) {
 
           return;
         }
-        escapeTime = (new Date()).getTime();
-        var drawn = putWord(settings.list[i]);
-        var canceled = !sendEvent('wordclouddrawn', true, {
-          item: settings.list[i], drawn: drawn });
+        escapeTime = new Date().getTime();
+        const drawn = putWord(settings.list[i]);
+        const canceled = !sendEvent('wordclouddrawn', true, {
+          item: settings.list[i],
+          drawn: drawn,
+        });
         if (exceedTime() || canceled) {
           stoppingFunction(timer);
           settings.abort();
@@ -1208,11 +1170,10 @@ if (!window.clearImmediate) {
   // Expose the library as an AMD module
   if (typeof define === 'function' && define.amd) {
     global.WordCloud = WordCloud;
-    define('wordcloud', [], function() { return WordCloud; });
+    define('wordcloud', [], () => WordCloud);
   } else if (typeof module !== 'undefined' && module.exports) {
     module.exports = WordCloud;
   } else {
     global.WordCloud = WordCloud;
   }
-
 })(this); //jshint ignore:line
