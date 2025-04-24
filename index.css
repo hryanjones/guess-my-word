@@ -1,322 +1,316 @@
 /* Shared Styles */
 
 body {
-  font-family: sans-serif;
+    font-family: sans-serif;
 }
 h1 {
-  margin-bottom: 0px; /* add padding to header instead so "about" also gets it */
+    margin-bottom: 0px; /* add padding to header instead so "about" also gets it */
 }
 h1 .home {
-  color: #000;
+    color: #000;
 }
 small {
-  font-size: 50%;
+    font-size: 50%;
 }
-button,
-select,
-option,
-input[type="submit"] {
-  cursor: pointer;
+button, select, option, input[type="submit"] {
+    cursor: pointer;
 }
-button[disabled],
-select[disabled],
-option[disabled],
-input[disabled] {
-  cursor: not-allowed;
+button[disabled], select[disabled], option[disabled], input[disabled] {
+    cursor: not-allowed;
 }
 header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 header .controls {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
 }
 header .controls > * {
-  margin-right: 8px;
+    margin-right: 8px;
 }
 nav {
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: flex-end;
-  flex-grow: 1; /* so still shows up on the right*/
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    flex-grow: 1; /* so still shows up on the right*/
 }
 
 [v-cloak] {
-  display: none;
+    display: none;
 }
 #difficulty-changer[v-cloak] {
-  visibility: hidden;
+    visibility: hidden;
 }
 #difficulty-changer.normal {
-  border-bottom: 3px solid royalblue;
+    border-bottom: 3px solid royalblue;
 }
 #difficulty-changer.hard {
-  border-bottom: 3px solid crimson;
+    border-bottom: 3px solid crimson;
 }
 
+
 .bigger-target {
-  padding: 8px 8px 0px;
+    padding: 8px 8px 0px;
 }
-li,
-li a {
-  padding: 4px 0px;
+li, li a {
+    padding: 4px 0px;
 }
 
 a#give-up,
-a#give-up:visited {
-  text-decoration: none;
+a#give-up:visited
+{
+    text-decoration: none;
 }
 
 a:hover,
 a:active {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 
 /* Game Styles */
 
 h1 {
-  white-space: nowrap;
-  margin-top: 0px;
+    white-space: nowrap;
+    margin-top: 0px;
 }
 
 #container {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 300px; /* put some space at the bottom to make it easier to scroll, esp. on mobile when keyboard is visible*/
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 300px; /* put some space at the bottom to make it easier to scroll, esp. on mobile when keyboard is visible*/
 }
 #after-guesses-container,
 #before-guesses-container,
-#guesser {
-  display: flex;
+#guesser
+{
+    display: flex;
 }
 
 .fixed-width-label {
-  width: 88px;
-  font-weight: bold;
-  text-align: right;
+    width: 88px;
+    font-weight: bold;
+    text-align: right;
 }
 .fixed-width-label,
 .guess {
-  margin: 0px 5px 5px 0px;
+    margin: 0px 5px 5px 0px;
 }
 
 #guesser {
-  margin-bottom: 5px;
+    margin-bottom: 5px;
 }
 
 #new-guess {
-  width: 130px;
-  text-transform: lowercase;
+    width: 130px;
+    text-transform: lowercase;
 }
 form input[type="submit"] {
-  padding: 1px 10px;
+    padding: 1px 10px;
 }
 
 form {
-  position: relative; /* so can absolutely position the give up button */
+    position: relative; /* so can absolutely position the give up button */
 }
 #give-up {
-  font-size: 80%;
-  white-space: nowrap;
-  position: absolute;
-  top: 200%;
-  right: 0px;
+    font-size: 80%;
+    white-space: nowrap;
+    position: absolute;
+    top: 200%;
+    right: 0px;
 }
 
 .guess {
-  justify-content: space-between;
+    justify-content: space-between;
 }
 .fixed-width-label,
 .guess-number {
-  color: #999;
+    color: #999;
 }
 .initially-hidden {
-  visibility: hidden;
+    visibility: hidden;
 }
 .hidden {
-  display: none;
+    display: none;
 }
 
 .current-guess {
-  font-style: italic;
+    font-style: italic;
 }
 
 #after-label {
-  align-self: flex-end;
+    align-self: flex-end;
 }
 
 #after-label,
 #before-label {
-  position: relative;
+    position: relative;
 }
 #after-label::before,
 #before-label::before {
-  content: "my word";
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  font-weight: normal;
-  font-size: 80%;
+    content: 'my word';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    font-weight: normal;
+    font-size: 80%;
 }
 
 .show-win #submit-guess,
 .show-win #give-up,
 .gave-up #submit-guess,
 .gave-up #give-up {
-  display: none;
+    display: none;
 }
 .show-win #new-guess,
 .gave-up #new-guess {
-  font-size: 120%;
+    font-size: 120%
 }
 .show-win #new-guess {
-  background: none;
-  border: none;
-  font-style: italic;
-  text-decoration: underline;
+    background: none;
+    border: none;
+    font-style: italic;
+    text-decoration: underline;
 }
 
 /* LEADERBOARD */
 
 .leaderboard-form label {
-  font-size: 80%;
+    font-size: 80%;
 }
 
 .error {
-  color: #c50000;
+    color: #c50000;
 }
 .warning strong {
-  color: #850000;
+    color: #850000;
 }
-.error,
-.warning {
-  font-style: italic;
-  font-size: 80%;
+.error, .warning {
+    font-style: italic;
+    font-size: 80%
 }
 
 #word-cloud-canvas {
-  height: 250px;
-  margin-bottom: 20px;
+    height: 250px;
+    margin-bottom: 20px;
 }
 
 .leaderboard-table {
-  padding: 0px 8px;
-  height: 100vh;
+    padding: 0px 8px;
+    height: 100vh;
 }
 .leaderboard-table .row {
-  display: flex;
-  justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
 }
 .leaderboard-table .row .cell {
-  flex-basis: 25%;
+    flex-basis: 25%;
 }
 .leaderboard-table.allTime .row .cell {
-  flex-basis: 20%;
+    flex-basis: 20%;
 }
 .leaderboard-table .row .cell.name-cell,
 .leaderboard-table .row .cell.awards-cell,
-.leaderboard-table .row .cell.firstSubmitDate-cell {
-  flex-basis: 40%;
+.leaderboard-table .row .cell.firstSubmitDate-cell
+{
+    flex-basis: 40%;
 }
 .leaderboard-table .row .cell.guesses-cell {
-  flex-basis: 100%; /* "highest weekly rate" is long give a little extra room for it */
+    flex-basis: 100%; /* "highest weekly rate" is long give a little extra room for it */
 }
 .leaderboard-table.allTime .row .cell.awards-cell {
-  flex-basis: 50%; /* "highest weekly rate" is long give a little extra room for it */
+    flex-basis: 50%; /* "highest weekly rate" is long give a little extra room for it */
 }
 .leaderboard-table.normal .row,
 .leaderboard-table.normal .vue-recycle-scroller__item-view {
-  min-width: 400px;
-  max-width: 600px;
+    min-width: 400px;
+    max-width: 600px;
 }
 .leaderboard-table.allTime .row,
 .leaderboard-table.allTime .vue-recycle-scroller__item-view,
 .leaderboard-table.has-guesses .row,
-.leaderboard-table.has-guesses .vue-recycle-scroller__item-view {
-  min-width: 900px;
-  max-width: 1000px;
+.leaderboard-table.has-guesses .vue-recycle-scroller__item-view  {
+    min-width: 900px;
+    max-width: 1000px;
 }
 
 .vue-recycle-scroller__item-wrapper {
-  /* FIXME: shouldn't be overridding internal class */
-  overflow: visible !important;
+    /* FIXME: shouldn't be overridding internal class */
+    overflow: visible !important;
 }
 .leaderboard h2::after {
-  font-style: italic;
+    font-style: italic;
 }
 
 .header.row {
-  z-index: 1;
-  width: 100%;
-  top: 0;
+    z-index: 1;
+    width: 100%;
+    top: 0;
 }
 
 .leaderboard-table .header.row .cell {
-  border-bottom: 1px solid black;
-  background-color: white;
-  cursor: pointer;
-  font-weight: bold;
-  white-space: unset;
+    border-bottom: 1px solid black;
+    background-color: white;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: unset;
 }
 
 .cell {
-  padding: 3px 7px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: right;
-  white-space: nowrap;
+    padding: 3px 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+    white-space: nowrap;
 
-  /* 3 lines then ellipsis -- https://css-tricks.com/line-clampin/#article-header-id-0 */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+    /* 3 lines then ellipsis -- https://css-tricks.com/line-clampin/#article-header-id-0 */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .name-cell {
-  word-break: break-all; /* so long single-word names don't get cut off on right */
+    word-break: break-all; /* so long single-word names don't get cut off on right */
 }
 
 .even {
-  background-color: #eee;
+    background-color: #EEE;
 }
 
 .my-name {
-  font-weight: bold;
-  font-style: italic;
-  background-color: #ffb;
+    font-weight: bold;
+    font-style: italic;
+    background-color: #FFB;
 }
 
 .cell.name-cell,
 .cell.awards-cell,
-.cell.guesses-cell {
-  /* name and award should be left aligned other fields, which are number should be right aligned */
-  text-align: left;
-  white-space: unset;
+.cell.guesses-cell { /* name and award should be left aligned other fields, which are number should be right aligned */
+    text-align: left;
+    white-space: unset;
 }
-td:last-child {
-  /* awards column shouldn't be too narrow */
-  min-width: 100px;
+td:last-child { /* awards column shouldn't be too narrow */
+    min-width: 100px;
 }
 
 .date-picker {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 .date-picker .display {
-  width: 140px;
-  text-align: right;
-  padding-right: 10px;
-  display: inline-block;
+    width: 140px;
+    text-align: right;
+    padding-right: 10px;
+    display: inline-block;
 }
 .date-picker .display.centered {
-  text-align: center;
+    text-align: center;
 }
 
 .date-picker button {
-  padding-left: 2px;
-  padding-right: 2px;
-  margin: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+    margin: 0;
 }
