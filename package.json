@@ -4,9 +4,10 @@
     "description": "A word guessing game, where you only know whether my word is before or after your guess. (An unofficial clone of the game previously available on simbase.org)",
     "main": "index.html",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "npm run check",
         "check": "biome check",
-        "check:fix": "biome check --write"
+        "check:fix": "biome check --write",
+        "prepare": "husky"
     },
     "repository": {
         "type": "git",
@@ -20,7 +21,8 @@
     },
     "homepage": "https://github.com/hryanjones/guess-my-word#readme",
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4"
+        "@biomejs/biome": "^1.9.4",
+        "husky": "^9.1.7"
     },
     "dependencies": {
         "wordcloud": "^1.1.1"
