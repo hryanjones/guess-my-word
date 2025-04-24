@@ -167,8 +167,8 @@ function handleScroll() {
     const header = document.getElementById('leaderboard-header');
     if (!header) return;
     const headerTop = document.getElementById('leaderboard-header-top');
-    const headerTopPosition = headerTop && headerTop.getBoundingClientRect();
-    const top = (headerTopPosition && headerTopPosition.top) || 0;
+    const headerTopPosition = headerTop?.getBoundingClientRect();
+    const top = headerTopPosition?.top || 0;
     if (top < 0) {
         if (header.style.position !== 'fixed') header.style.position = 'fixed';
         header.style.left = `${headerTopPosition.left}px`;
@@ -238,7 +238,7 @@ function determineIfPlayedThisBoardToday(difficulty, type) {
     // return true // GUESSES TEST
     if (type === 'allTime') return false; // can't report on all time board
     const savedGame = getSavedGameByDifficulty(difficulty);
-    return Boolean(savedGame && savedGame.submitTime && isToday(savedGame.submitTime));
+    return Boolean(savedGame?.submitTime && isToday(savedGame.submitTime));
 }
 
 function getQueryStringForIncludingGuesses(hasPlayed, difficulty) {
@@ -306,7 +306,7 @@ function sortByKeyAsc(first, second, key, secondaryKey) {
 }
 
 function lowercase(value) {
-    return (value && value.toLowerCase && value.toLowerCase()) || value;
+    return value?.toLowerCase?.() || value;
 }
 
 function sortByKeyDesc(first, second, key, secondaryKey) {
@@ -355,22 +355,22 @@ function passThrough(input) {
 }
 
 function removeTimeFromISOString(dateString) {
-    return dateString && dateString.replace(/T.*/, '');
+    return dateString?.replace(/T.*/, '');
 }
 
 function getTwoDecimalPlaces(number) {
-    return number && number.toFixed(2);
+    return number?.toFixed(2);
 }
 
 function joinWithSpaces(array) {
-    return array && array.join && array.join(' ');
+    return array?.join?.(' ');
 }
 
 function getWordCloudData(leaders) {
     let maxWordFrequency = 0;
     const wordFrequency = {};
     leaders.forEach(({ guesses }) => {
-        guesses = (guesses && guesses.split(' ')) || ['word'];
+        guesses = guesses?.split(' ') || ['word'];
         guesses.pop(); // last word is the word, remove it
         guesses.forEach((guess) => {
             if (!wordFrequency[guess]) {
@@ -417,19 +417,22 @@ function randomColor() {
 // https://stackoverflow.com/questions/27078285/simple-throttle-in-js
 // FIXME fix the linting in this thing
 function throttle(func, wait) {
-    var context, args, result;
-    var timeout = null;
-    var previous = 0;
-    var later = () => {
+    let context;
+    let args;
+    let result;
+    let timeout = null;
+    let previous = 0;
+    const later = () => {
         timeout = null;
         result = func.apply(context, args);
         if (!timeout) context = args = null;
     };
     const trailing = true;
     return function () {
-        var now = Date.now();
-        var remaining = wait - (now - previous);
+        const now = Date.now();
+        const remaining = wait - (now - previous);
         context = this;
+        // biome-ignore lint/style/noArguments: not my code
         args = arguments;
         if (remaining <= 0 || remaining > wait) {
             if (timeout) {

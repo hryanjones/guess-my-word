@@ -92,7 +92,8 @@ function getFormattedTime(milliseconds) {
     return formattedTime.join(' ') || '0s';
 }
 
-function isToday(date) {
+function isToday(d) {
+    let date = d;
     if (typeof date === 'string') {
         date = new Date(date);
     }
