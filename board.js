@@ -34,8 +34,7 @@ const LEADER_HEADER_FIELDS_BY_TYPE = {
     ],
 };
 
-const allHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE.normal
-    .concat(LEADER_HEADER_FIELDS_BY_TYPE.allTime);
+const allHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE.normal.concat(LEADER_HEADER_FIELDS_BY_TYPE.allTime);
 
 // add default pass-through formatter
 allHeaderFields.forEach((field) => {
@@ -43,9 +42,11 @@ allHeaderFields.forEach((field) => {
 });
 
 const EMPTY_LEADER = {}; // the empty leader is required for the virtualized board to render
-allHeaderFields.map(field => field.key).forEach((key) => {
-    EMPTY_LEADER[key] = '';
-});
+allHeaderFields
+    .map((field) => field.key)
+    .forEach((key) => {
+        EMPTY_LEADER[key] = '';
+    });
 
 const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
     normal: {
@@ -61,7 +62,7 @@ const DEFAULT_SORT_CONFIG_BY_LEADER_TYPE = {
 const difficultyFromURL = urlParams.get('difficulty');
 const searchFromURL = urlParams.get('search');
 
-const app = new Vue({ // eslint-disable-line no-unused-vars
+const app = new Vue({
     el: '#leaderboard-container',
     data: {
         leadersType: 'normal',
@@ -102,9 +103,7 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
             if (!searchTerm) {
                 this.filteredLeaders = null;
             } else {
-                this.filteredLeaders = this.leaders.filter(leader => (
-                    leader.name.toLowerCase().includes(searchTerm)
-                ));
+                this.filteredLeaders = this.leaders.filter((leader) => leader.name.toLowerCase().includes(searchTerm));
             }
             return !e; // return false if it's from submit
         },
@@ -127,20 +126,17 @@ const app = new Vue({ // eslint-disable-line no-unused-vars
             wordCloudContainer.append(this.wordCloudCanvas);
 
             let i = 0;
-            WordCloud(
-                this.wordCloudCanvas,
-                {
-                    list: this.wordCloudData,
-                    fontFamily: 'sans-serif',
-                    color: stripedColorsBlackToGray, // 'random-dark',
-                    minRotation: 0,
-                    maxRotation: 0,
-                    drawOutOfBound: false,
-                    shrinkToFit: true,
-                    gridSize: 10,
-                    minSize: 8,
-                }
-            );
+            WordCloud(this.wordCloudCanvas, {
+                list: this.wordCloudData,
+                fontFamily: 'sans-serif',
+                color: stripedColorsBlackToGray, // 'random-dark',
+                minRotation: 0,
+                maxRotation: 0,
+                drawOutOfBound: false,
+                shrinkToFit: true,
+                gridSize: 10,
+                minSize: 8,
+            });
 
             function stripedColorsBlackToGray() {
                 let n = i * 2;
@@ -161,7 +157,7 @@ function hackToReRenderList(leaders) {
     leaders.pop();
 }
 
-function noop() { }
+function noop() {}
 
 const throttledHandleScroll = throttle(handleScroll, 100);
 
@@ -194,21 +190,18 @@ function getLeaders() {
     this.leaderHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE[type];
     if (!this.hasPlayedThisBoardToday && type === 'normal') {
         // remove guesses column if we won't have the data
-        this.leaderHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE.normal.filter(h => h.key !== 'guesses');
+        this.leaderHeaderFields = LEADER_HEADER_FIELDS_BY_TYPE.normal.filter((h) => h.key !== 'guesses');
     }
 
     const onSuccess = (json) => {
         const { key, direction } = this.sortConfig;
         try {
-            this.leaders = sortLeaders(
-                normalizeLeadersAndAddAwards(json),
-                key,
-                direction,
-            );
+            this.leaders = sortLeaders(normalizeLeadersAndAddAwards(json), key, direction);
         } catch (e) {
             console.error(e);
             this.message = '';
-            this.error = 'Sorry, having trouble dealing with the response from the leaderboard. Please let @guessmyword1 know.';
+            this.error =
+                'Sorry, having trouble dealing with the response from the leaderboard. Please let @guessmyword1 know.';
             return;
         }
         this.error = '';
@@ -427,7 +420,7 @@ function throttle(func, wait) {
     var context, args, result;
     var timeout = null;
     var previous = 0;
-    var later = function () {
+    var later = () => {
         timeout = null;
         result = func.apply(context, args);
         if (!timeout) context = args = null;
@@ -451,5 +444,5 @@ function throttle(func, wait) {
         }
         return result;
     };
-};
+}
 /* eslint-enable */

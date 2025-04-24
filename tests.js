@@ -17,7 +17,7 @@ function testGetFormattedTime() {
 function testNoDuplicatesInWordList() {
     const wordsSeenBefore = new Set();
     for (const wordListKey in possibleWords) {
-        possibleWords[wordListKey].forEach(newPossibleWord => {
+        possibleWords[wordListKey].forEach((newPossibleWord) => {
             if (newPossibleWord && wordsSeenBefore.has(newPossibleWord)) {
                 oops(newPossibleWord);
             }
@@ -34,7 +34,6 @@ function testThatDifficultyMatchesDropdownWhenStartGuessing() {
         oops('expected difficulty to match dropdown');
     }
 }
-
 
 function oops(didNotExpect = '') {
     throw new Error(`oops: ${didNotExpect}`);

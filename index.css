@@ -12,10 +12,16 @@ h1 .home {
 small {
     font-size: 50%;
 }
-button, select, option, input[type="submit"] {
+button,
+select,
+option,
+input[type="submit"] {
     cursor: pointer;
 }
-button[disabled], select[disabled], option[disabled], input[disabled] {
+button[disabled],
+select[disabled],
+option[disabled],
+input[disabled] {
     cursor: not-allowed;
 }
 header {
@@ -52,17 +58,16 @@ nav {
     border-bottom: 3px solid crimson;
 }
 
-
 .bigger-target {
     padding: 8px 8px 0px;
 }
-li, li a {
+li,
+li a {
     padding: 4px 0px;
 }
 
 a#give-up,
-a#give-up:visited
-{
+a#give-up:visited {
     text-decoration: none;
 }
 
@@ -85,8 +90,7 @@ h1 {
 }
 #after-guesses-container,
 #before-guesses-container,
-#guesser
-{
+#guesser {
     display: flex;
 }
 
@@ -151,7 +155,7 @@ form {
 }
 #after-label::before,
 #before-label::before {
-    content: 'my word';
+    content: "my word";
     position: absolute;
     bottom: 100%;
     left: 0;
@@ -167,7 +171,7 @@ form {
 }
 .show-win #new-guess,
 .gave-up #new-guess {
-    font-size: 120%
+    font-size: 120%;
 }
 .show-win #new-guess {
     background: none;
@@ -188,9 +192,10 @@ form {
 .warning strong {
     color: #850000;
 }
-.error, .warning {
+.error,
+.warning {
     font-style: italic;
-    font-size: 80%
+    font-size: 80%;
 }
 
 #word-cloud-canvas {
@@ -214,8 +219,7 @@ form {
 }
 .leaderboard-table .row .cell.name-cell,
 .leaderboard-table .row .cell.awards-cell,
-.leaderboard-table .row .cell.firstSubmitDate-cell
-{
+.leaderboard-table .row .cell.firstSubmitDate-cell {
     flex-basis: 40%;
 }
 .leaderboard-table .row .cell.guesses-cell {
@@ -232,7 +236,7 @@ form {
 .leaderboard-table.allTime .row,
 .leaderboard-table.allTime .vue-recycle-scroller__item-view,
 .leaderboard-table.has-guesses .row,
-.leaderboard-table.has-guesses .vue-recycle-scroller__item-view  {
+.leaderboard-table.has-guesses .vue-recycle-scroller__item-view {
     min-width: 900px;
     max-width: 1000px;
 }
@@ -277,22 +281,24 @@ form {
 }
 
 .even {
-    background-color: #EEE;
+    background-color: #eee;
 }
 
 .my-name {
     font-weight: bold;
     font-style: italic;
-    background-color: #FFB;
+    background-color: #ffb;
 }
 
 .cell.name-cell,
 .cell.awards-cell,
-.cell.guesses-cell { /* name and award should be left aligned other fields, which are number should be right aligned */
+.cell.guesses-cell {
+    /* name and award should be left aligned other fields, which are number should be right aligned */
     text-align: left;
     white-space: unset;
 }
-td:last-child { /* awards column shouldn't be too narrow */
+td:last-child {
+    /* awards column shouldn't be too narrow */
     min-width: 100px;
 }
 
