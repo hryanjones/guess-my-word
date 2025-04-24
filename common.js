@@ -1,17 +1,14 @@
 const urlParams = new URLSearchParams(window.location.search);
-const useProdBackend = urlParams.get('useProd') === ''
-    || window.location.hostname.includes('hryanjones.com'); // includes to allow for beta on home.hryanjones.com
+const useProdBackend = urlParams.get('useProd') === '' || window.location.hostname.includes('hryanjones.com'); // includes to allow for beta on home.hryanjones.com
 
 const BOARD_SERVER = useProdBackend
-    // ? 'https://home.hryanjones.com'
-    ? 'https://ec2.hryanjones.com'
-    : 'http://localhost:8080';
-    // : 'https://192.168.0.144';
-// const BOARD_SERVER = 'https://hryanjones.builtwithdark.com';
-// const BAD_NAMES_SERVER = 'https://hryanjones.builtwithdark.com/gmw/bad-names';
+    ? // ? 'https://home.hryanjones.com'
+      'https://ec2.hryanjones.com'
+    : // : 'http://localhost:8080';
+      'https://192.168.0.144'; // use local production server
 
-const UNKNOWN_LEADERBOARD_ERROR = 'Sorry, the completion board is having trouble right now. Please try again in a little bit. (contact @guessmyword1 if it persists)';
-
+const UNKNOWN_LEADERBOARD_ERROR =
+    'Sorry, the completion board is having trouble right now. Please try again in a little bit. (contact @guessmyword1 on Twitter or @hryanjones on BlueSky if it persists)';
 
 function makeLeaderboardRequest(timezonelessDate, wordlist, onSuccess, onFailure, postData, extraURL = '') {
     const url = `${BOARD_SERVER}/leaderboard/${timezonelessDate}/wordlist/${wordlist}${extraURL}`;
@@ -50,7 +47,6 @@ function makeRequest(url, onSuccess, onFailure, postData) {
         });
 }
 
-
 // Utilities
 
 function getTimezonelessLocalDate(date) {
@@ -76,7 +72,7 @@ function getFormattedTime(milliseconds) {
     if (!Number.isInteger(milliseconds)) {
         return '';
     }
-    let seconds = Math.round((milliseconds) / 1000);
+    let seconds = Math.round(milliseconds / 1000);
     const hours = Math.floor(seconds / 3600);
     seconds %= 3600;
     const minutes = Math.floor(seconds / 60);
@@ -107,10 +103,13 @@ function now() {
     return new Date();
 }
 
-function datesMatch(date1, date2) { // ignores time
-    return date1.getFullYear() === date2.getFullYear()
-        && date1.getMonth() === date2.getMonth()
-        && date1.getDate() === date2.getDate();
+function datesMatch(date1, date2) {
+    // ignores time
+    return (
+        date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate()
+    );
 }
 
 // # Local Storage Persistence
@@ -152,7 +151,7 @@ function getStoredUserNames() {
     if (!IS_LOCAL_STORAGE_AVAILABLE) return [];
     const usernamesJSON = localStorage.getItem(USERNAMES_USED_KEY);
     try {
-        return usernamesJSON && JSON.parse(usernamesJSON) || [];
+        return (usernamesJSON && JSON.parse(usernamesJSON)) || [];
     } catch (error) {
         return [];
     }

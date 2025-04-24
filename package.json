@@ -1,32 +1,28 @@
 {
-  "name": "guess-my-word",
-  "version": "1.0.0",
-  "description": "A word guessing game, where you only know whether my word is before or after your guess. (An unofficial clone of the game previously available on simbase.org)",
-  "main": "index.html",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hryanjones/guess-my-word.git"
-  },
-  "keywords": [
-    "words",
-    "game",
-    "browser"
-  ],
-  "author": "H. Ryan Jones",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hryanjones/guess-my-word/issues"
-  },
-  "homepage": "https://github.com/hryanjones/guess-my-word#readme",
-  "devDependencies": {
-    "eslint": "^5.3.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.17.2"
-  },
-  "dependencies": {
-    "wordcloud": "^1.1.1"
-  }
+    "name": "guess-my-word",
+    "version": "1.0.0",
+    "description": "A word guessing game, where you only know whether my word is before or after your guess. (An unofficial clone of the game previously available on simbase.org)",
+    "main": "index.html",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "check": "biome check",
+        "check:fix": "biome check --write"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hryanjones/guess-my-word.git"
+    },
+    "keywords": ["words", "game", "browser"],
+    "author": "H. Ryan Jones",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hryanjones/guess-my-word/issues"
+    },
+    "homepage": "https://github.com/hryanjones/guess-my-word#readme",
+    "devDependencies": {
+        "@biomejs/biome": "^1.9.4"
+    },
+    "dependencies": {
+        "wordcloud": "^1.1.1"
+    }
 }
