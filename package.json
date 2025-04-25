@@ -5,10 +5,11 @@
     "main": "index.html",
     "scripts": {
         "test": "npm run check",
-        "check": "biome check",
+        "check": "biome check && echo '✅  All checks passed!' || echo '❌  Check failed!'",
+        "check:fix": "biome check --write",
         "server": "static-server --port 8080 &",
         "integration": "npm run server; cypress run",
-        "check:fix": "biome check --write",
+        "pre-push": "git diff --exit-code && git diff --exit-code --staged && npm run integration || echo '⚠️  uncommitted files or integ tests failed'",
         "prepare": "husky"
     },
     "repository": {
