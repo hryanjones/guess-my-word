@@ -6,6 +6,8 @@
     "scripts": {
         "test": "npm run check",
         "check": "biome check",
+        "server": "static-server --port 8080 &",
+        "integration": "npm run server; cypress run",
         "check:fix": "biome check --write",
         "prepare": "husky"
     },
@@ -22,7 +24,9 @@
     "homepage": "https://github.com/hryanjones/guess-my-word#readme",
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
-        "husky": "^9.1.7"
+        "cypress": "^14.3.2",
+        "husky": "^9.1.7",
+        "static-server": "^3.0.0"
     },
     "dependencies": {
         "wordcloud": "^1.1.1"

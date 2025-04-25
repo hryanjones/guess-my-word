@@ -412,7 +412,6 @@ function randomColor() {
     return `rgb(${randomUpTo200}, ${randomUpTo200}, ${randomUpTo200})`;
 }
 
-/* eslint-disable */
 // stolen and modified from
 // https://stackoverflow.com/questions/27078285/simple-throttle-in-js
 // FIXME fix the linting in this thing
@@ -448,4 +447,3 @@ function throttle(func, wait) {
         return result;
     };
 }
-/* eslint-enable */

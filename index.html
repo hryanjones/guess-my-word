@@ -1,249 +1,198 @@
 <!doctype html>
 <html lang="en">
-<head>
-<title>Guess my word</title>
-<link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤔</text></svg>">
-<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="./index.css?version=6"/>
+<head>
+    <title>Guess my word</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤔</text></svg>">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="./index.css?version=6" />
 </head>
+
 <body>
-<div
-    id="container"
-    v-bind:class="{
+    <div id="container" v-bind:class="{
         'show-win': winTime,
         'gave-up': gaveUpTime,
-    }"
->
+    }">
 
-<header>
-    <div class="controls">
-        <h1>
-            <a href="./" class="home">Guess my word</a>
-        </h1>
+        <header>
+            <div class="controls">
+                <h1>
+                    <a href="./" class="home">Guess my word</a>
+                </h1>
 
-        <select
-            id="difficulty-changer"
-            v-on:change="toggleDifficulty"
-            v-bind:value="difficulty"
-            v-bind:class="difficulty"
-            v-cloak
-        >
-            <option value="normal">normal</option>
-            <option value="hard">hard</option>
-        </select>
+                <select id="difficulty-changer" v-on:change="toggleDifficulty" v-bind:value="difficulty"
+                    v-bind:class="difficulty" v-cloak>
+                    <option value="normal">normal</option>
+                    <option value="hard">hard</option>
+                </select>
 
-        <button v-on:click="toggleShowDate" v-cloak title="play passed days">📅</button>
+                <button v-on:click="toggleShowDate" v-cloak title="play passed days">📅</button>
 
-        <div v-cloak v-if="showDatePicker">
-            <div style="margin-bottom: 10px; font-style: italic;">choose a previous or
-                <a v-on:click="randomDay" href="#">random</a>
-                day to play for fun</div>
-            <div class="date-picker">
-                <button v-on:click="backMonth" title="back a month">&lt;m</button><button v-on:click="backWeek" title="back a month">&lt;w</button><button
-                    v-on:click="backDay" title="back a day">&lt;d</button>
-                <div class="display" v-bind:class="{
+                <div v-cloak v-if="showDatePicker">
+                    <div style="margin-bottom: 10px; font-style: italic;">choose a previous or
+                        <a v-on:click="randomDay" href="#">random</a>
+                        day to play for fun
+                    </div>
+                    <div class="date-picker">
+                        <button v-on:click="backMonth" title="back a month">&lt;m</button><button v-on:click="backWeek"
+                            title="back a month">&lt;w</button><button v-on:click="backDay"
+                            title="back a day">&lt;d</button>
+                        <div class="display" v-bind:class="{
                         'centered': ['Today', 'First day 🎂'].includes(getShortDayString()),
                     }">
-                    {{getShortDayString()}}
+                            {{getShortDayString()}}
+                        </div>
+                        <button v-on:click="forwardDay" title="forward a day"
+                            v-bind:disabled="!playDate">d&gt;</button><button v-on:click="forwardWeek"
+                            title="forward a week" v-bind:disabled="!playDate">w&gt;</button><button
+                            v-on:click="forwardMonth" title="forward a month" v-bind:disabled="!playDate">m&gt;</button>
+                    </div>
                 </div>
-                <button v-on:click="forwardDay" title="forward a day" v-bind:disabled="!playDate">d&gt;</button><button v-on:click="forwardWeek" title="forward a week" v-bind:disabled="!playDate">w&gt;</button><button
-                    v-on:click="forwardMonth" title="forward a month" v-bind:disabled="!playDate">m&gt;</button>
             </div>
-        </div>
-    </div>
 
-    <nav>
-        <a class="bigger-target" href="./board.html">🏆 Board</a>
-        <a class="bigger-target" href="./README.html">about</a>
-    </nav>
-</header>
+            <nav>
+                <a class="bigger-target" href="./board.html">🏆 Board</a>
+                <a class="bigger-target" href="./README.html">about</a>
+            </nav>
+        </header>
 
-<p style="margin-bottom: 24px">
-    I'm thinking of an English word. Make guesses below and I'll tell you if my word is alphabetically before or after your
-    guess.
-</p>
+        <p id="instructions" style="margin-bottom: 24px">
+            I'm thinking of an English word. Make guesses below and I'll tell you if my word is alphabetically before or
+            after your guess.
+        </p>
 
-<h3 v-if="false" style="margin-left: 78px;">Loading...</h3>
-<div v-cloak>
-    <div id="after-guesses-container" v-if="afterGuesses.length">
-        <label id="after-label" class="fixed-width-label" title="My word is after these words">
-            is after:
-        </label>
-        <div>
-            <!-- FIXME how reuse the guess template? -->
-            <div
-                v-for="guess in afterGuesses"
-                class="guess"
-                v-bind:class="{
-                    'current-guess': guesses.slice(-1)[0] === guess,
-                }"
-            >
-                {{guess}}
-            </div>
-        </div>
-    </div>
-    <div id="guesser">
-        <label class="fixed-width-label"><!-- cheap spacing--></label>
-        <div>
-            <h2 v-if="winTime">You got it! 🎉🎉🎉</h2>
-            <p v-if="winTime">
-                ({{guesses.length}} guesses in {{getFormattedTime(winTime - startTime)}})
-            </p>
-            <h3 v-if="gaveUpTime">My word is:</h3>
-            <form name="guesser" v-on:submit.prevent="makeGuess" autocomplete="off" autocorrect="off">
-                <input
-                    id="new-guess"
-                    placeholder="type a word then -->"
-                    type="text"
-                    autocomplete="new-password"
-                    autocorrect="off"
-                    v-on:change="setGuess"
-                    v-bind:disabled="winTime || gaveUpTime"
-                    v-bind:value="guessValue"
-                />
-                <input
-                    id="submit-guess"
-                    type="submit"
-                    value="guess"
-                    v-bind:disabled="winTime || gaveUpTime"
-                />
-                <a
-                    v-if="winTime || gaveUpTime"
-                    v-bind:href="`https://duckduckgo.com/?q=${guessValue}&ia=definition`"
-                    target="_blank"
-                    style="font-size: 90%"
-                    key="definition"
-                >
-                    📖 definition
-                </a>
-
-                <a
-                    id="give-up"
-                    href="#"
-                    v-on:click="giveUp"
-                    v-if="guesses.length && !gaveUpTime"
-                    key="give-up"
-                >
-                    give up :(
-                </a>
-
-                <div class="error" v-if="guessError" style="margin: 5px 0px;">
-                    {{guessError}}
-                </div>
-
-            </form>
-
-            <form
-                class="leaderboard-form"
-                v-if="shouldShowSubmitName()"
-                v-on:submit.prevent="submitToLeaderboard"
-                v-cloak
-            >
-                <br/>
-                <label>
-                    enter your name for the completion board<br/>
-                    <input
-                        autocomplete="on"
-                        required
-                        minlength="1"
-                        maxlength="128"
-                        type="text"
-                        list="usernames"
-                        v-bind:disabled="leaderboardRequest"
-                        v-bind:value="username"
-                        v-on:input="setUsername"
-                        v-focus
-                    />
+        <h3 id="message-loading-dictionary" v-if="false" style="margin-left: 78px;">Loading...</h3>
+        <div v-cloak>
+            <div id="after-guesses-container" v-if="afterGuesses.length">
+                <label id="after-label" class="fixed-width-label" title="My word is after these words">
+                    is after:
                 </label>
-                <datalist id="usernames" v-if="usernamesUsed.length > 1">
-                    <option v-for="name in usernamesUsed" v-bind:value="name">
-                    </option>
-                </datalist>
-                <input
-                    id="submit-to-leaderboard"
-                    type="submit"
-                    value="submit"
-                    v-bind:disabled="leaderboardRequest"
-                />
-                <br /><label style="margin-top: 5px; font-weight: bold; display: block; cursor: pointer;">
-                    <input
-                        type="checkbox"
-                        v-bind:checked="areGuessesPublic"
-                        v-on:change="toggleGuessesPublic"
-                    />
-                    allow my guesses to be public
-                </label>
-                <div class="error" v-if="leaderSubmitError" style="margin: 5px 0px;">
-                    {{leaderSubmitError}}
-                </div>
-            </form>
-
-            <div class="leaderboard" v-if="submitTime" v-cloak>
-                Go to the
-                <a v-bind:href="`./board.html?difficulty=${difficulty}`">Completion board for "{{difficulty}}" word</a>
-                <br/><div class="warning">
-                    <strong>WARNING:</strong> may contain inappropriate names.
-                </div>
-            </div>
-
-            <h4 v-if="winTime && !playDate">
-                Come back tomorrow for a new word<span v-if="difficulty === 'hard'">.</span>
-                <span v-if="difficulty === 'normal'">or
-                    <a href="#" v-on:click="toggleDifficulty">try a hard word</a>?
-                </span>
-            </h4>
-
-            <h4 v-if="gaveUpTime">
-                better luck tomorrow
-                <span v-if="difficulty === 'hard'">or
-                    <a
-                        href="#"
-                        v-on:click="toggleDifficulty"
-                    >
-                        try a normal word</a>?
-                </span>
-            </h4>
-        </div>
-    </div>
-    <div id="before-guesses-container" v-if="beforeGuesses.length">
-        <label id="before-label" class="fixed-width-label" title="My word is before these words">
-            is before:
-        </label>
-        <div id="before-guesses">
-            <div
-                v-for="guess in beforeGuesses"
-                class="guess"
-                v-bind:class="{
+                <div>
+                    <!-- FIXME how reuse the guess template? -->
+                    <div v-for="guess in afterGuesses" class="guess" v-bind:class="{
                     'current-guess': guesses.slice(-1)[0] === guess,
                 }">
-                {{guess}}
+                        {{guess}}
+                    </div>
+                </div>
             </div>
+            <div id="guesser">
+                <label class="fixed-width-label"><!-- cheap spacing--></label>
+                <div>
+                    <h2 v-if="winTime">You got it! 🎉🎉🎉</h2>
+                    <p v-if="winTime">
+                        ({{guesses.length}} guesses in {{getFormattedTime(winTime - startTime)}})
+                    </p>
+                    <h3 v-if="gaveUpTime">My word is:</h3>
+                    <form name="guesser" v-on:submit.prevent="makeGuess" autocomplete="off" autocorrect="off">
+                        <input id="new-guess" placeholder="type a word then -->" type="text" autocomplete="new-password"
+                            autocorrect="off" v-on:change="setGuess" v-bind:disabled="winTime || gaveUpTime"
+                            v-bind:value="guessValue" />
+                        <input id="submit-guess" type="submit" value="guess" v-bind:disabled="winTime || gaveUpTime" />
+                        <a v-if="winTime || gaveUpTime"
+                            v-bind:href="`https://duckduckgo.com/?q=${guessValue}&ia=definition`" target="_blank"
+                            style="font-size: 90%" key="definition">
+                            📖 definition
+                        </a>
+
+                        <a id="give-up" href="#" v-on:click="giveUp" v-if="guesses.length && !gaveUpTime" key="give-up">
+                            give up :(
+                        </a>
+
+                        <div class="error" v-if="guessError" style="margin: 5px 0px;">
+                            {{guessError}}
+                        </div>
+
+                    </form>
+
+                    <form class="leaderboard-form" v-if="shouldShowSubmitName()"
+                        v-on:submit.prevent="submitToLeaderboard" v-cloak>
+                        <br />
+                        <label>
+                            enter your name for the completion board<br />
+                            <input autocomplete="on" required minlength="1" maxlength="128" type="text" list="usernames"
+                                v-bind:disabled="leaderboardRequest" v-bind:value="username" v-on:input="setUsername"
+                                v-focus />
+                        </label>
+                        <datalist id="usernames" v-if="usernamesUsed.length > 1">
+                            <option v-for="name in usernamesUsed" v-bind:value="name">
+                            </option>
+                        </datalist>
+                        <input id="submit-to-leaderboard" type="submit" value="submit"
+                            v-bind:disabled="leaderboardRequest" />
+                        <br /><label style="margin-top: 5px; font-weight: bold; display: block; cursor: pointer;">
+                            <input type="checkbox" v-bind:checked="areGuessesPublic"
+                                v-on:change="toggleGuessesPublic" />
+                            allow my guesses to be public
+                        </label>
+                        <div class="error" v-if="leaderSubmitError" style="margin: 5px 0px;">
+                            {{leaderSubmitError}}
+                        </div>
+                    </form>
+
+                    <div class="leaderboard" v-if="submitTime" v-cloak>
+                        Go to the
+                        <a v-bind:href="`./board.html?difficulty=${difficulty}`">Completion board for "{{difficulty}}"
+                            word</a>
+                        <br />
+                        <div class="warning">
+                            <strong>WARNING:</strong> may contain inappropriate names.
+                        </div>
+                    </div>
+
+                    <h4 v-if="winTime && !playDate">
+                        Come back tomorrow for a new word<span v-if="difficulty === 'hard'">.</span>
+                        <span v-if="difficulty === 'normal'">or
+                            <a href="#" v-on:click="toggleDifficulty">try a hard word</a>?
+                        </span>
+                    </h4>
+
+                    <h4 v-if="gaveUpTime">
+                        better luck tomorrow
+                        <span v-if="difficulty === 'hard'">or
+                            <a href="#" v-on:click="toggleDifficulty">
+                                try a normal word</a>?
+                        </span>
+                    </h4>
+                </div>
+            </div>
+            <div id="before-guesses-container" v-if="beforeGuesses.length">
+                <label id="before-label" class="fixed-width-label" title="My word is before these words">
+                    is before:
+                </label>
+                <div id="before-guesses">
+                    <div v-for="guess in beforeGuesses" class="guess" v-bind:class="{
+                    'current-guess': guesses.slice(-1)[0] === guess,
+                }">
+                        {{guess}}
+                    </div>
+                </div>
+            </div>
+
         </div>
+
     </div>
 
-</div>
 
-</div>
+    <script src="https://d2t3dun0il9ood.cloudfront.net/dictionary.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <script src="common.js?version=7"></script>
+    <script src="index.js?version=10"></script>
 
+    <!-- Uncomment to run tests in browser -->
+    <!-- <script src="./tests.js"></script> -->
 
-<script src="https://d2t3dun0il9ood.cloudfront.net/dictionary.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
-<script src="common.js?version=7"></script>
-<script src="index.js?version=10"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-72565624-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-<!-- Uncomment to run tests in browser -->
-<!-- <script src="./tests.js"></script> -->
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-72565624-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-72565624-1');
-</script>
+        gtag('config', 'UA-72565624-1');
+    </script>
 </body>
+
 </html>
