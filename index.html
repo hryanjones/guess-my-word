@@ -81,11 +81,11 @@
             <div id="guesser">
                 <label class="fixed-width-label"><!-- cheap spacing--></label>
                 <div>
-                    <h2 v-if="winTime">You got it! 🎉🎉🎉</h2>
-                    <p v-if="winTime">
+                    <h2 id="win-title" v-if="winTime">You got it! 🎉🎉🎉</h2>
+                    <p id="win-stats-short" v-if="winTime">
                         ({{guesses.length}} guesses in {{getFormattedTime(winTime - startTime)}})
                     </p>
-                    <h3 v-if="gaveUpTime">My word is:</h3>
+                    <h3 id="give-up-label" v-if="gaveUpTime">My word is:</h3>
                     <form name="guesser" v-on:submit.prevent="makeGuess" autocomplete="off" autocorrect="off">
                         <input id="new-guess" placeholder="type a word then -->" type="text" autocomplete="new-password"
                             autocorrect="off" v-on:change="setGuess" v-bind:disabled="winTime || gaveUpTime"
@@ -101,7 +101,7 @@
                             give up :(
                         </a>
 
-                        <div class="error" v-if="guessError" style="margin: 5px 0px;">
+                        <div id="guess-error" class="error" v-if="guessError" style="margin: 5px 0px;">
                             {{guessError}}
                         </div>
 

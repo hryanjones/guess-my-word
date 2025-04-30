@@ -350,6 +350,8 @@ function makeGuess() {
     this.guessError = this.getInvalidReason(guess);
 
     if (this.guessError) {
+        // select the value in the input to make it easy to fix
+        getElement('new-guess').select();
         return;
     }
 
